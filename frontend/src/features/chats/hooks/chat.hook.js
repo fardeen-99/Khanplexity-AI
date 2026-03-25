@@ -35,12 +35,16 @@ const handlegetmessages=async(id)=>{
     try {
         dispatch(setLoading(true))
         const response=await getChat(id)
-        console.log(response.messages)
-        dispatch(setMessages(response.messages))
-        dispatch(setCurrentChat(response.messages[0].chat))
-
-
         
+        dispatch(setMessages(response.messages))
+        console.log(response.messages)
+        // Ensure we set the ID as a string, not the full chat object if populated
+        const chatId = response.messages[0]?.chat;
+          
+        if (chatId) {
+          dispatch(setCurrentChat(chatId))
+        }
+
         dispatch(setLoading(false))
     } catch (error) {
         // dispatch(setError(error))
@@ -57,8 +61,9 @@ const handlesendmessage=async(message,chatId)=>{
         dispatch(addMessage(response.ai))
  
         if(response.title){
-        dispatch(addtitle({_id:response.chat,title:response.title}))
-        dispatch(setCurrentChat(response.chat))
+          // Use response.chatId instead of response.chat
+          dispatch(addtitle({_id:response.chatId,title:response.title}))
+          dispatch(setCurrentChat(response.chatId))
         }
 
         dispatch(setLoading(false))

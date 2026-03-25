@@ -39,7 +39,7 @@ export const sendmessage = async (message) => {
             return new AIMessage(message.content);
         }
     })
-    const response=await googleModel.invoke(messages);
+    const response=await mistralModel.invoke(messages);
     return response.content;
 }
 

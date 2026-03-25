@@ -34,11 +34,11 @@ const Login = () => {
 
     return (
         <div className="bg-[#0B0B0F] text-on-surface min-h-screen flex flex-col items-center justify-center p-6 selection:bg-primary-container selection:text-white relative z-0">
-            <main className="w-full max-w-[480px] relative z-10 animate-fade-in">
+            <main className="w-full max-w-[450px] relative z-10 animate-fade-in">
                 {/* Branding Section */}
                 <div className="flex flex-col items-center mb-10 text-center">
                     <div className="mb-6 relative">
-                        <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-150"></div>
+                        {/* <div className="absolute inset-0 bg-primary/20 blur-3xl rounded-full scale-150"></div> */}
                         <div className="relative bg-surface-container-highest p-4 rounded-2xl shadow-2xl border border-outline-variant/20">
                             <Sparkles className="w-9 h-9 text-primary" />
                         </div>
@@ -54,7 +54,7 @@ const Login = () => {
                 {/* Login Card */}
                 <div className="glass-card rounded-[2rem] p-8 md:p-10 shadow-2xl relative overflow-hidden group">
                     {/* Subtle internal ambient light */}
-                    <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/5 blur-[80px] rounded-full"></div>
+                    {/* <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/5 blur-[80px] rounded-full"></div> */}
                     
                     <form onSubmit={handlesubmit} className="space-y-6 relative z-10">
                         {/* Email Input */}
@@ -156,10 +156,10 @@ const Login = () => {
             </main>
 
             {/* Background Decorative Elements */}
-            <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-[#0B0B0F]">
+            {/* <div className="fixed inset-0 pointer-events-none z-[-1] overflow-hidden bg-[#0B0B0F]">
                 <div className="absolute top-[10%] left-[5%] w-[400px] h-[400px] bg-primary/5 blur-[120px] rounded-full"></div>
                 <div className="absolute bottom-[5%] right-[5%] w-[300px] h-[300px] bg-secondary-container/10 blur-[100px] rounded-full"></div>
-            </div>
+            </div> */}
         </div>
     );
 };
