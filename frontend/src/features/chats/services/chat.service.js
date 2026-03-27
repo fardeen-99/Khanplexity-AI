@@ -22,7 +22,13 @@ export const getChat=async(id)=>{
     return response.data
 }
 
-export const sendMessage=async(message,chatId)=>{
-    const response=await APi.post("/",{message,chatId})
-    return response.data
+export const sendMessage = async (message, chatId) => {
+    if (message instanceof FormData) {
+        // If it's a new chat, chatId might not be in the form yet
+        if (chatId) message.append("chatId", chatId);
+        const response = await APi.post("/", message);
+        return response.data;
+    }
+    const response = await APi.post("/", { message, chatId });
+    return response.data;
 }

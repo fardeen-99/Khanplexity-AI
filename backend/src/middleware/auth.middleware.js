@@ -1,24 +1,19 @@
 import jwt from 'jsonwebtoken'
 import redis from '../config/cache.js'
+import ErrorHandler from '../utils/ErrorHandler.js'
 
 export const authMiddleware = async (req,res,next) => {
 
 const token = req.cookies.token;
 
 if(!token){
-    return res.status(400).json({
-        success:false,
-        message:"invalid credentials"
-    })
+    return next(new ErrorHandler("invalid credentials", 400));
 }
 
 const istokenblacklisted = await redis.get(token)
 
 if(istokenblacklisted){
-    return res.status(400).json({
-        success:false,
-        message:"invalid credentials"
-    })
+    return next(new ErrorHandler("invalid credentials", 400));
 }
 
 let decoded;
@@ -28,10 +23,7 @@ try {
     req.user = decoded;
     next();
 } catch (error) {
-    return res.status(400).json({
-        success:false,
-        message:"invalid credentials"
-    })
+    return next(new ErrorHandler("invalid credentials", 400));
 }
 
 

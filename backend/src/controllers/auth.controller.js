@@ -2,6 +2,7 @@ import usermodel from "../models/auth.model.js";
 import { sendmail } from "../services/mail.service.js";
 import jwt from 'jsonwebtoken'
 import redis from "../config/cache.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
 
 export const register = async (req,res) => {
 
@@ -17,10 +18,7 @@ const isuseralreadyexists = await usermodel.findOne({
 })
 
 if(isuseralreadyexists){
-    return res.status(400).json({
-        success:false,
-        message:"User already exists"
-    })
+    return next(new ErrorHandler("User already exists", 400));
 }
 
     const verificationLink = `http://localhost:${process.env.PORT || 3000}/api/auth/verify/${email}`;
@@ -51,33 +49,25 @@ const user = await usermodel.create({
 res.status(201).json({
     success:true,
     message:"User created successfully",
-    user:{
-        username:user.username,
-        email:user.email,
-        isverified:user.isverified
-    }
+    // user:{
+    //     username:user.username,
+    //     email:user.email,
+    //     isverified:user.isverified
+    // }
 })
 
     } catch (error) {
-  
-        console.log(error);
-        res.status(500).json({
-            success:false,
-            message:"Internal server error"
-        })
+        next(error);
     }
 
 }
 
-export const verify = async (req,res) => {
+export const verify = async (req,res,next) => {
     try {
         const email = req.params.id;
         const user = await usermodel.findOne({email});
         if(!user){
-            return res.status(404).json({
-                success:false,
-                message:"User not found"
-            })
+            return next(new ErrorHandler("User not found", 404));
         }
 
         const loginUrl = "http://localhost:5173/login"; // Adjust this to your frontend URL
@@ -99,63 +89,52 @@ export const verify = async (req,res) => {
 
         return res.send(htmlResponse("Email verified successfully!", "success"));
     } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            success:false,
-            message:"Internal server error"
-        })
+        next(error);
     }
 }
 
 
-export const login = async (req,res) => {
-         const {email,password} = req.body;
+export const login = async (req,res,next) => {
+    try {
+        const {email,password} = req.body;
 
-    const user=await usermodel.findOne({email})
+        const user=await usermodel.findOne({email})
 
-    if(!user){
-        return res.status(404).json({
-            success:false,
-            message:"User not found"
-        })
-    }
-
-    if(!user.isverified){
-        return res.status(401).json({
-            success:false,
-            message:"User not verified"
-        })
-    }
-
-    const isPasswordValid = await user.comparePassword(password);
-    if(!isPasswordValid){
-        return res.status(401).json({
-            success:false,
-            message:"Invalid password"
-        })
-    }
-
-    const token=jwt.sign({
-        id:user._id
-    },process.env.JWT_SECRET,{expiresIn:"7d"})
-
-    res.cookie("token",token)
-
-
-    res.status(200).json({
-        success:true,
-        message:"User logged in successfully",
-        user:{
-            username:user.username,
-            email:user.email,
-            isverified:user.isverified
+        if(!user){
+            return next(new ErrorHandler("User not found", 404));
         }
-    })
+
+        if(!user.isverified){
+            return next(new ErrorHandler("User not verified", 401));
+        }
+
+        const isPasswordValid = await user.comparePassword(password);
+        if(!isPasswordValid){
+            return next(new ErrorHandler("Invalid password", 401));
+        }
+
+        const token=jwt.sign({
+            id:user._id
+        },process.env.JWT_SECRET,{expiresIn:"7d"})
+
+        res.cookie("token",token)
 
 
+        res.status(200).json({
+            success:true,
+            message:"User logged in successfully",
+            user:{
+                username:user.username,
+                email:user.email,
+                isverified:user.isverified
+            }
+        })
+    } catch (error) {
+        next(error);
+    }
 }
 
-export const logout = async (req,res) => {
+export const logout = async (req,res,next) => {
     try {
         const token=req.cookies.token
         res.clearCookie("token")
@@ -166,11 +145,7 @@ export const logout = async (req,res) => {
             message:"User logged out successfully"
         })
     } catch (error) {
-        console.log(error);
-        res.status(500).json({
-            success:false,
-            message:"Internal server error"
-        })
+        next(error);
     }
 }
 

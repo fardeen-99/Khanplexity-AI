@@ -3,6 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import authRoutes from "./routes/auth.route.js";
 import chatRoutes from "./routes/chat.route.js";
+import { errorMiddleware } from "./middleware/error.middlewar.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -21,5 +22,6 @@ app.use(cors({
 app.use("/api/auth",authRoutes);
 app.use("/api/chat",chatRoutes);
 
+app.use(errorMiddleware);
 
 export default app;

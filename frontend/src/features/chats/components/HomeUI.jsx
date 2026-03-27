@@ -96,8 +96,8 @@ const HomeUI = () => {
     <div className="min-h-full flex flex-col items-center pt-16 pb-12 px-6 max-w-3xl mx-auto w-full animate-fade-in">
       {/* Logo + Name */}
       <div className="flex flex-col items-center mb-10">
-        <PerplexityLogo className="w-16 h-16 text-[#EAEAEA] mb-4" />
-        <h1 className="text-5xl md:text-6xl font-bold text-[#EAEAEA] tracking-tight">
+        <PerplexityLogo className="w-16 h-16 text-[#111] dark:text-[#EAEAEA] mb-4 transition-colors duration-500" />
+        <h1 className="text-5xl md:text-6xl font-bold text-[#111] dark:text-[#EAEAEA] tracking-tight transition-colors duration-500">
           Khanplexity
         </h1>
       </div>
@@ -107,7 +107,8 @@ const HomeUI = () => {
         {categories.map((cat) => (
           <button
             key={cat.label}
-            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#2A2A2A] bg-[#121212] text-[#AAAAAA] text-sm hover:border-[#3A3A3A] hover:text-[#EAEAEA] transition-all"
+            onClick={() => handlePromptClick(cat.label)}
+            className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#E5E5E5] dark:border-[#2A2A2A] bg-white dark:bg-[#121212] text-[#555] dark:text-[#AAAAAA] text-sm hover:border-[#CCC] dark:hover:border-[#3A3A3A] hover:text-[#111] dark:hover:text-[#EAEAEA] transition-all duration-500"
           >
             {cat.icon}
             {cat.label}
@@ -116,7 +117,7 @@ const HomeUI = () => {
       </div>
 
       {/* Search input */}
-      <div className="w-full bg-[#121212] border border-[#222] rounded-2xl p-4 mb-6 shadow-lg">
+      <div className="w-full bg-white dark:bg-[#121212] border border-[#E5E5E5] dark:border-[#222] rounded-2xl p-4 mb-6 shadow-lg transition-colors duration-500">
         <textarea
           ref={inputRef}
           rows={2}
@@ -124,7 +125,7 @@ const HomeUI = () => {
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="Ask anything..."
-          className="w-full bg-transparent text-[#EAEAEA] placeholder-[#444] resize-none outline-none text-base leading-relaxed scrollbar-none"
+          className="w-full bg-transparent text-[#111] dark:text-[#EAEAEA] placeholder-[#888] dark:placeholder-[#444] resize-none outline-none text-base leading-relaxed scrollbar-none transition-colors duration-500"
         />
         <div className="flex items-center justify-between mt-2">
           <button className="text-[#555] hover:text-[#888] transition-colors p-1">
@@ -137,10 +138,10 @@ const HomeUI = () => {
             <button
               onClick={handleSubmit}
               disabled={!query.trim()}
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all
+              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500
                 ${query.trim()
-                  ? "bg-[#EAEAEA] text-[#0B0B0B] hover:bg-white"
-                  : "bg-[#222] text-[#555] cursor-not-allowed"
+                  ? "bg-[#111] text-white dark:bg-[#EAEAEA] dark:text-[#0B0B0B] hover:bg-black dark:hover:bg-white"
+                  : "bg-[#F5F5F7] text-[#CCC] dark:bg-[#222] dark:text-[#555] cursor-not-allowed"
                 }`}
             >
               <Send size={15} />
@@ -155,7 +156,7 @@ const HomeUI = () => {
           <button
             key={i}
             onClick={() => handlePromptClick(prompt)}
-            className="text-left text-[#4A9EFF] text-sm py-3 border-b border-[#1A1A1A] last:border-0 hover:text-blue-300 transition-colors"
+            className="text-left text-[#4A9EFF] text-sm py-3 border-b border-[#E5E5E5] dark:border-[#1A1A1A] last:border-0 hover:text-blue-300 transition-colors"
           >
             {prompt}
           </button>
@@ -167,10 +168,10 @@ const HomeUI = () => {
         {sourceCards.map((card, i) => (
           <div
             key={i}
-            className="bg-[#121212] border border-[#1F1F1F] rounded-xl p-4 flex flex-col gap-3 hover:border-[#2A2A2A] hover:bg-[#141414] transition-all cursor-pointer group"
+            className="bg-white dark:bg-[#121212] border border-[#E5E5E5] dark:border-[#1F1F1F] rounded-xl p-4 flex flex-col gap-3 hover:border-[#CCC] dark:hover:border-[#2A2A2A] hover:bg-[#F5F5F7] dark:hover:bg-[#141414] transition-all duration-500 cursor-pointer group"
           >
             <div className="flex items-start justify-between">
-              <div className="w-8 h-8 rounded-lg bg-[#1A1A1A] flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-[#F5F5F7] dark:bg-[#1A1A1A] flex items-center justify-center transition-colors duration-500">
                 {card.icon}
               </div>
               <svg
@@ -188,7 +189,7 @@ const HomeUI = () => {
               </svg>
             </div>
             <div>
-              <p className="text-[#EAEAEA] text-sm font-medium leading-tight mb-1">
+              <p className="text-[#111] dark:text-[#EAEAEA] text-sm font-medium leading-tight mb-1 transition-colors duration-500">
                 {card.title}
               </p>
               <p className="text-[#555] text-xs tracking-wide">{card.meta}</p>
@@ -206,7 +207,7 @@ const HomeUI = () => {
           {capabilities.map((cap, i) => (
             <div
               key={i}
-              className="bg-[#121212] border border-[#1F1F1F] rounded-xl p-4 flex flex-col gap-3 hover:border-[#2A2A2A] hover:bg-[#141414] transition-all cursor-pointer"
+              className="bg-white dark:bg-[#121212] border border-[#E5E5E5] dark:border-[#1F1F1F] rounded-xl p-4 flex flex-col gap-3 hover:border-[#CCC] dark:hover:border-[#2A2A2A] hover:bg-[#F5F5F7] dark:hover:bg-[#141414] transition-all duration-500 cursor-pointer"
             >
               <div
                 className={`w-8 h-8 rounded-lg ${cap.iconBg} flex items-center justify-center`}
@@ -214,7 +215,7 @@ const HomeUI = () => {
                 {cap.icon}
               </div>
               <div>
-                <p className="text-[#EAEAEA] text-sm font-medium mb-1">
+                <p className="text-[#111] dark:text-[#EAEAEA] text-sm font-medium mb-1 transition-colors duration-500">
                   {cap.label}
                 </p>
                 <p className="text-[#555] text-xs leading-relaxed">{cap.desc}</p>

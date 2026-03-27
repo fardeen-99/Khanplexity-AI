@@ -1,14 +1,37 @@
-import { sendmessage, sendtitle } from "../services/ai.service.js";
+import { sendmessage, sendtitle, streammessage } from "../services/ai.service.js";
 import chatmodel from "../models/chat.model.js";
 import messagemodel from "../models/message.model.js";
+import ErrorHandler from "../utils/ErrorHandler.js";
+import ImageKit from "@imagekit/nodejs";
+import { toFile } from "@imagekit/nodejs";
+import dotenv from "dotenv";
+dotenv.config();
 
-export const createChat = async (req, res) => {
+
+const imagekit = new ImageKit({
+  privateKey: process.env.IMAGEKIT_API_KEY
+});
+
+export const createChat = async (req, res, next) => {
     try {
-        const { message, chatId } = req.body;
+        const { message, chatId, stream } = req.body;
+        const image = req.file;
 
-        let title=null;
-        let chat=null;
+
+        let imageUrl = null;
+        let title = null;
+        let chat = null;
         let currentChatId = chatId || null;
+
+        if (image) {
+            const result = await imagekit.files.upload({
+  file: await toFile(Buffer.from(image.buffer), 'file'),
+  fileName: 'fileName',
+  folder:"chats"
+});
+            imageUrl = result.url;
+        }
+
 
         // Create new chat if chatId is not provided
         if (!chatId) {
@@ -25,17 +48,44 @@ export const createChat = async (req, res) => {
             chat: currentChatId,
             role: "user",
             content: message,
+            image: imageUrl,
         });
 
-        // Retrieve and sort chat history to provide memory to the AI
-        const chatHistory = await messagemodel.find({ chat: currentChatId });
+        // Retrieve chat history to provide memory to the AI
+        const chatHistory = await messagemodel.find({ chat: currentChatId }).sort({ createdAt: 1 });
 
-        console.log(chatHistory);
+        if (stream) {
+            // Set headers for SSE
+            res.setHeader("Content-Type", "text/event-stream");
+            res.setHeader("Cache-Control", "no-cache");
+            res.setHeader("Connection", "keep-alive");
 
-        // Get AI response considering the entire history
+            // Send initial metadata
+            res.write(`data: ${JSON.stringify({ type: "metadata", title, chatId: currentChatId, user: userMessage })}\n\n`);
+
+            let fullAIResponse = "";
+            const streamResponse = await streammessage(chatHistory);
+
+            for await (const chunk of streamResponse) {
+                const content = chunk.messages[chunk.messages.length-1].text || "";
+                fullAIResponse += content;
+                res.write(`data: ${JSON.stringify({ type: "chunk", content })}\n\n`);
+            }
+
+            // Save the complete AI response
+            const aiMessage = await messagemodel.create({
+                chat: currentChatId,
+                role: "ai",
+                content: fullAIResponse,
+            });
+
+            // Send final message info and end the stream
+            res.write(`data: ${JSON.stringify({ type: "done", ai: aiMessage })}\n\n`);
+            return res.end();
+        }
+
+        // Synchronous response (fallback)
         const aiResponse = await sendmessage(chatHistory);
-
-        // Save the AI's response
         const aiMessage = await messagemodel.create({
             chat: currentChatId,
             role: "ai",
@@ -49,27 +99,26 @@ export const createChat = async (req, res) => {
             ai: aiMessage,
         });
     } catch (error) {
-        console.error("Error in createChat:", error);
-        res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 }
 
-export const getAllChats = async (req, res) => {
+
+export const getAllChats = async (req, res, next) => {
     try {
-        const chats = await chatmodel.find({ user: req.user.id });
+        const chats = await chatmodel.find({ user: req.user.id }).sort({createdAt:-1})
         res.status(200).json({
             success:true,
             message:"Chats fetched successfully",
             chats
         });
     } catch (error) {
-        console.error("Error in getAllChats:", error);
-        res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 }
 
 
-export const getChat = async (req, res) => {
+export const getChat = async (req, res, next) => {
     try {
         const chatId = req.params.id;
         // const chat = await chatmodel.findById(chatId);
@@ -81,32 +130,30 @@ export const getChat = async (req, res) => {
             messages
         });
     } catch (error) {
-        console.error("Error in getChat:", error);
-        res.status(500).json({ message: "Internal server error" });
+        next(error);
     }
 }
-export const deleteChat=async(req,res)=>{
+export const deleteChat = async (req, res, next) => {
+    try {
+        const id = req.params.id;
 
-const id=req.params.id
+        const chat = await chatmodel.findOne({ _id: id, user: req.user.id });
 
+        if (!chat) {
+            return next(new ErrorHandler("Chat not found", 404));
+        }
 
+        await chatmodel.deleteOne({ _id: id });
+        await messagemodel.deleteMany({ chat: id });
 
-const chattitle=await chatmodel.findById({_id:id,user:req.user.id})
-
-if(!chattitle){
-    return res.status(404).json({
-        message:"chat title not found"
-    })
+        res.status(200).json({
+            success: true,
+            message: "Chat deleted successfully"
+        });
+    } catch (error) {
+        next(error);
+    }
 }
-
-await chatmodel.deleteOne({_id:id})
-
-await messagemodel.deleteMany({chat:id})
-
-
-res.status(200).json({
-    messgae:"chat deleted succesfully"
-})
 
 
 // const messages=await messagemodel.findById({chat:chattitle})
@@ -123,5 +170,5 @@ res.status(200).json({
 
 
 
-}
+// }
 

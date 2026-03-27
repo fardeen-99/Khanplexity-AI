@@ -7,6 +7,8 @@ import Register from '../features/auth/pages/Register'
 import Protected from '../features/auth/pages/protected'
 import Chat from '@/features/chats/pages/Chat'
 import AuthInit from '../features/auth/components/AuthInit'
+import Search from '@/features/chats/pages/Search'
+import Chatlayout from '@/features/chats/pages/Chatlayout'
 
 
 
@@ -32,12 +34,34 @@ const router=createBrowserRouter([
     path:"/signup",
     element:<Register/>
   },
+
   {
-    path:"/chat",
-    element:<Protected>
-      <Chat/>
-    </Protected>
-  }
+    element: <Chatlayout />,
+    children: [
+      {
+        path: "/chat",
+        element: <Protected>
+          <Chat />
+        </Protected>
+      },
+      {
+        path: "/search",
+        element: <Protected>
+          <Search />
+        </Protected>
+      }
+    ]
+  },
+
+  // {
+  //   path:"/chat",
+  //   element:<Protected>
+  //     <Chat/>
+  //   </Protected>
+  //  , children:[
+     
+  //   ]
+  // }
 ])
 
 

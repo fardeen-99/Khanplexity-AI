@@ -11,8 +11,13 @@ import {
   ChevronRight,
   Search,
   X,
+  Bell,
+  LogOut
 } from "lucide-react";
 import useChat from "../hooks/chat.hook";
+import { useTheme } from "../../../contexts/ThemeContext";
+import { useAuth } from "../../auth/hooks/auth.hook";
+
 
 // Perplexity SVG logo
 const PerplexityLogo = ({ className = "" }) => (
@@ -29,11 +34,15 @@ const PerplexityLogo = ({ className = "" }) => (
   </svg>
 );
 
-const Sidebar = ({ isOpen, onClose, lightMode, onToggleLightMode }) => {
+const Sidebar = ({ isOpen, onClose }) => {
+
+const { handlelogout} = useAuth();
+
   const navigate = useNavigate();
   const { chats, currentChat } = useSelector((state) => state.chat);
   const { user } = useSelector((state) => state.auth);
   const { handlegetmessages, handledeletechat, handlenewchat } = useChat();
+  const { theme, toggleTheme } = useTheme();
 
   const handleChatSelect = (chatId) => {
     handlegetmessages(chatId);
@@ -58,7 +67,7 @@ const Sidebar = ({ isOpen, onClose, lightMode, onToggleLightMode }) => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 h-screen w-[260px] bg-[#0B0B0B] border-r border-[#1F1F1F]
+          fixed top-0 left-0 h-screen w-[260px] bg-[#F9F9F9] dark:bg-[#0B0B0B] border-r border-[#E5E5E5] dark:border-[#1F1F1F]
           flex flex-col z-40 transition-transform duration-300 ease-in-out
           ${isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}
         `}
@@ -68,12 +77,12 @@ const Sidebar = ({ isOpen, onClose, lightMode, onToggleLightMode }) => {
           <NavLink
             to="/chat"
             onClick={handleNewChat}
-            className="flex items-center gap-2.5 text-[#EAEAEA] hover:text-white transition-colors group"
+            className="flex items-center gap-2.5 text-[#111] dark:text-[#EAEAEA] hover:text-black dark:hover:text-white transition-colors group"
           >
-            <div className="w-7 h-7 flex items-center justify-center">
-              <PerplexityLogo className="w-full h-full text-[#EAEAEA] group-hover:text-white transition-colors" />
+            <div className="w-5  flex items-center justify-center">
+              <PerplexityLogo className="w-full h-full text-[#111] dark:text-[#888] group-hover:text-black dark:group-hover:text-white transition-colors" />
             </div>
-            <span className="text-base font-semibold tracking-wide">Search</span>
+            <span className="text-sm text-[#888] font-semibold tracking-wide">Search</span>
           </NavLink>
           {/* Mobile close */}
           <button
@@ -89,22 +98,22 @@ const Sidebar = ({ isOpen, onClose, lightMode, onToggleLightMode }) => {
           <NavItem
             icon={<Search size={16} />}
             label="Chats"
-            onClick={() => { navigate("/chat"); if(onClose) onClose(); }}
+            onClick={() => { navigate("/search"); if (onClose) onClose(); }}
           />
-          <NavItem
+          {/* <NavItem
             // icon={<Instagram size={16} />}
             label="Insta Post"
-            onClick={() => {}}
-          />
+            onClick={() => { }}
+          /> */}
           <NavItem
             icon={<Plus size={16} />}
             label="New Chat"
-            onClick={handleNewChat}
+            onClick={() => { navigate("/chat"); handleNewChat(); if (onClose) onClose(); }}
             accent
           />
         </nav>
 
-        <div className="mx-3 h-px bg-[#1F1F1F] my-1" />
+        <div className="mx-3 h-px bg-[#E5E5E5] dark:bg-[#1F1F1F] my-1" />
 
         {/* Recent chats */}
         <div className="flex-1 overflow-hidden flex flex-col px-2">
@@ -120,14 +129,14 @@ const Sidebar = ({ isOpen, onClose, lightMode, onToggleLightMode }) => {
                 <div
                   key={chat._id}
                   className={`
-                    flex items-center justify-between gap-2 px-3 py-2 rounded-lg cursor-pointer group
-                    transition-all duration-150
-                    ${isActive
-                      ? "bg-[#1F1F2E] text-[#EAEAEA]"
-                      : "text-[#888] hover:bg-[#161616] hover:text-[#EAEAEA]"
+                      flex items-center justify-between gap-2 px-3 py-2 rounded-lg cursor-pointer group
+                      transition-all duration-150
+                      ${isActive
+                      ? "bg-[#E5E5E5] text-[#111] dark:bg-[#1F1F2E] dark:text-[#EAEAEA]"
+                      : "text-[#555] dark:text-[#888] hover:bg-[#EAEAEA] dark:hover:bg-[#161616] hover:text-[#111] dark:hover:text-[#EAEAEA]"
                     }
-                  `}
-                  onClick={() => handleChatSelect(chat._id)}
+                    `}
+                  onClick={() => { handleChatSelect(chat._id); navigate("/chat"); if (onClose) onClose(); }}
                 >
                   <span className="text-sm truncate flex-1 leading-snug">
                     {chat.title}
@@ -137,7 +146,7 @@ const Sidebar = ({ isOpen, onClose, lightMode, onToggleLightMode }) => {
                       e.stopPropagation();
                       handledeletechat(chat._id);
                     }}
-                    className="opacity-0 group-hover:opacity-100 transition-opacity text-[#555] hover:text-red-400 p-0.5 shrink-0"
+                    className="opacity-0 group-hover:opacity-100 transition-opacity text-[#555] hover:text-red-400 dark:hover:text-red-400 p-0.5 shrink-0"
                   >
                     <Trash2 size={13} />
                   </button>
@@ -151,37 +160,49 @@ const Sidebar = ({ isOpen, onClose, lightMode, onToggleLightMode }) => {
           </div>
 
           {chats?.length > 0 && (
-            <button className="flex items-center gap-1.5 px-2 py-2 text-[#555] hover:text-[#888] text-xs transition-colors">
+            <button 
+            onClick={()=>navigate("/search")}
+            className="flex items-center gap-1.5 px-2 py-2 text-[#555] hover:text-[#888] text-xs transition-colors">
               <ChevronRight size={12} />
               VIEW ALL
             </button>
           )}
         </div>
 
-        <div className="mx-3 h-px bg-[#1F1F1F] my-1" />
+        <div className="mx-3 h-px bg-[#E5E5E5] dark:bg-[#1F1F1F] my-1" />
 
         {/* Bottom: Light mode toggle + User profile */}
-        <div className="px-2 pb-4 flex flex-col gap-1">
+        <div className="px-2 pb-4 flex flex-col ">
           <button
-            onClick={onToggleLightMode}
-            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[#888] hover:text-[#EAEAEA] hover:bg-[#161616] transition-all w-full text-left"
+            onClick={(e) =>{
+               toggleTheme(e.clientX, e.clientY)
+              // if (onClose) onClose();
+              }}
+
+            className="flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-[#555] dark:text-[#888] hover:text-[#111] dark:hover:text-[#EAEAEA] hover:bg-[#EAEAEA] dark:hover:bg-[#161616] transition-all w-full text-left group"
           >
-            {lightMode ? <Moon size={16} /> : <Sun size={16} />}
-            <span className="text-sm">{lightMode ? "Dark Mode" : "Light Mode"}</span>
+            {theme === "light" ? <Moon size={16} /> : <Sun size={16} className="group-hover:text-yellow-500" />}
+            <span className="text-sm">{theme === "light" ? "Dark Mode" : "Light Mode"}</span>
           </button>
 
           {user && (
-            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-[#161616] transition-all cursor-pointer">
-              <div className="w-7 h-7 rounded-full bg-teal-600 flex items-center justify-center shrink-0">
+            <div className="flex items-center gap-3 px-3 pt-2.5 rounded-lg cursor-pointer">
+              <div className="w-6 h-6 rounded-full bg-teal-600 flex items-center justify-center shrink-0">
                 <span className="text-xs font-bold text-white uppercase">
                   {user.username?.[0] || user.email?.[0] || "U"}
                 </span>
               </div>
-              <span className="text-sm text-[#EAEAEA] truncate">
+              <span className="text-sm text-[#111] dark:text-[#EAEAEA] truncate">
                 {user.username || user.email}
               </span>
-              <div className="ml-auto flex gap-1 opacity-0 hover:opacity-100 transition-opacity">
-                {/* extra actions could go here */}
+              <div className="ml-auto flex gap-2 text-[#555] transition-all">
+                <Bell size={16} className="active:scale-95"/>
+                <LogOut size={16} className="active:scale-95"
+                onClick={()=>{ handlelogout();navigate("/login");
+                  dispatch();
+                  if (onClose) onClose();}}
+                
+                />
               </div>
             </div>
           )}
@@ -197,8 +218,8 @@ const NavItem = ({ icon, label, onClick, accent = false }) => (
     className={`
       flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg text-sm transition-all duration-150 text-left
       ${accent
-        ? "text-[#888] hover:text-[#EAEAEA] hover:bg-[#161616]"
-        : "text-[#888] hover:text-[#EAEAEA] hover:bg-[#161616]"
+        ? "text-[#555] dark:text-[#888] hover:text-[#111] dark:hover:text-[#EAEAEA] hover:bg-[#EAEAEA] dark:hover:bg-[#161616]"
+        : "text-[#555] dark:text-[#888] hover:text-[#111] dark:hover:text-[#EAEAEA] hover:bg-[#EAEAEA] dark:hover:bg-[#161616]"
       }
     `}
   >

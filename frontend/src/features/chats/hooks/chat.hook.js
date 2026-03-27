@@ -23,10 +23,12 @@ const handledeletechat=async(id)=>{
         dispatch(setLoading(true))
         const response=await deleteChat(id)
                 dispatch(removeChat(id))
+                dispatch(setMessages([]))
+                dispatch(setCurrentChat(null))
 
         dispatch(setLoading(false))
     } catch (error) {
-        dispatch(setError(error.response.data.message))
+        // dispatch(setError(error.response.data.message))
         dispatch(setLoading(false))
     }
 }
@@ -44,7 +46,6 @@ const handlegetmessages=async(id)=>{
         if (chatId) {
           dispatch(setCurrentChat(chatId))
         }
-
         dispatch(setLoading(false))
     } catch (error) {
         // dispatch(setError(error))
@@ -52,12 +53,17 @@ const handlegetmessages=async(id)=>{
     }
 }
 
-const handlesendmessage=async(message,chatId)=>{
+const handlesendmessage = async (message, chatId) => {
     try {
         dispatch(setLoading(true))
-        const response=await sendMessage(message,chatId)
+        
+        // Use text content for local UI update to prevent React crash
+        const displayContent = message instanceof FormData ? message.get("message") : message;
+        dispatch(addMessage({ role: "user", content: displayContent, chat: chatId }))
+        
+        const response = await sendMessage(message, chatId)
+        console.log(response)
         // Add both the user message and AI response sequentially
-        dispatch(addMessage(response.user))
         dispatch(addMessage(response.ai))
  
         if(response.title){

@@ -32,7 +32,7 @@ const chatSlice=createSlice({
             state.messages=[...state.messages,action.payload]
         },
         addtitle:(state,action)=>{
-            state.chats=[...state.chats,action.payload]
+            state.chats=[action.payload,...state.chats]
         }
     }
 })
