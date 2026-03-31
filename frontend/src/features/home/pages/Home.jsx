@@ -1,6 +1,7 @@
 import React from "react";
 import { Sparkles, MessageSquare, Code, Lightbulb, Zap, Shield, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { HoverBorderGradient } from "@/components/ui/hover-border-gradient";
 
 const Home = () => {
     const navigate=useNavigate();
@@ -22,7 +23,9 @@ const Home = () => {
                 
                 <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight text-white mb-6 leading-tight">
                     Experience the Power of <br/>
-                    <span className="bg-linear-to-r w-full from-indigo-400 to-purple-400 bg-clip-text text-transparent italic uppercase">KhanPlexity</span>
+                  <span className="bg-gradient-to-r from-gray-200 via-gray-400 to-gray-500 bg-clip-text text-transparent italic uppercase">
+  KhanPlexity
+</span>
                 </h1>
                 
                 <p className="text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
@@ -30,7 +33,7 @@ const Home = () => {
                 </p>
                 
                 <div className="flex flex-wrap items-center justify-center gap-4">
-                    <button onClick={()=>navigate("/signup")} className="px-8 py-4 bg-indigo-600 text-white font-bold rounded-2xl hover:bg-indigo-500 transition-all shadow-xl shadow-indigo-600/20 active:scale-95">
+                    <button onClick={()=>navigate("/signup")} className="px-8 py-4.5 hover:bg-[#1a1818a9]  text-white font-bold bg-gray-900 rounded-2xl active:scale-95">
                         Get Started for Free
                     </button>
                     <button className="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-2xl hover:bg-white/10 transition-all backdrop-blur-sm">
@@ -52,8 +55,7 @@ const Home = () => {
                 ))}
             </section>
 
-            {/* Background Accent Glows */}
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-indigo-600/10 blur-[150px] -z-10 rounded-full pointer-events-none"></div>
+          
         </main>
     );
 };

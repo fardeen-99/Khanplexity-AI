@@ -33,9 +33,12 @@ const chatSlice=createSlice({
         },
         addtitle:(state,action)=>{
             state.chats=[action.payload,...state.chats]
+        },
+        setpreview:(state,action)=>{
+            state.preview=action.payload
         }
     }
 })
 
-export const {setChats,setLoading,setError,removeChat,setMessages,setCurrentChat,addMessage,addtitle}=chatSlice.actions
+export const {setChats,setLoading,setError,removeChat,setMessages,setCurrentChat,addMessage,addtitle,setpreview}=chatSlice.actions
 export default chatSlice.reducer

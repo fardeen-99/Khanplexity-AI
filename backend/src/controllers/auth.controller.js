@@ -4,29 +4,29 @@ import jwt from 'jsonwebtoken'
 import redis from "../config/cache.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 
-export const register = async (req,res) => {
+export const register = async (req, res) => {
 
     try {
-        
-const {username,email,password} = req.body;
 
-const isuseralreadyexists = await usermodel.findOne({
-    $or:[
-        {username},
-        {email}
-    ]
-})
+        const { username, email, password } = req.body;
 
-if(isuseralreadyexists){
-    return next(new ErrorHandler("User already exists", 400));
-}
+        const isuseralreadyexists = await usermodel.findOne({
+            $or: [
+                { username },
+                { email }
+            ]
+        })
 
-    const verificationLink = `http://localhost:${process.env.PORT || 3000}/api/auth/verify/${email}`;
+        if (isuseralreadyexists) {
+            return next(new ErrorHandler("User already exists", 400));
+        }
 
-    await sendmail({
-        to: email,
-        subject: "Verify your email",
-        html: `
+        const verificationLink = `http://localhost:${process.env.PORT || 3000}/api/auth/verify/${email}`;
+
+        await sendmail({
+            to: email,
+            subject: "Verify your email",
+            html: `
         <div style="font-family: sans-serif; text-align: center; padding: 20px;">
             <h1>Verify your email</h1>
             <p>Click the button below to verify your account.</p>
@@ -36,25 +36,25 @@ if(isuseralreadyexists){
         <p>regards,</p>
         <p>khanplexity team</p>
         `
-    })
+        })
 
 
-const user = await usermodel.create({
-    username,
-    email,
-    password
-})
+        const user = await usermodel.create({
+            username,
+            email,
+            password
+        })
 
 
-res.status(201).json({
-    success:true,
-    message:"User created successfully",
-    // user:{
-    //     username:user.username,
-    //     email:user.email,
-    //     isverified:user.isverified
-    // }
-})
+        res.status(201).json({
+            success: true,
+            message: "User created successfully",
+            // user:{
+            //     username:user.username,
+            //     email:user.email,
+            //     isverified:user.isverified
+            // }
+        })
 
     } catch (error) {
         next(error);
@@ -62,11 +62,11 @@ res.status(201).json({
 
 }
 
-export const verify = async (req,res,next) => {
+export const verify = async (req, res, next) => {
     try {
         const email = req.params.id;
-        const user = await usermodel.findOne({email});
-        if(!user){
+        const user = await usermodel.findOne({ email });
+        if (!user) {
             return next(new ErrorHandler("User not found", 404));
         }
 
@@ -94,39 +94,39 @@ export const verify = async (req,res,next) => {
 }
 
 
-export const login = async (req,res,next) => {
+export const login = async (req, res, next) => {
     try {
-        const {email,password} = req.body;
+        const { email, password } = req.body;
 
-        const user=await usermodel.findOne({email})
+        const user = await usermodel.findOne({ email })
 
-        if(!user){
+        if (!user) {
             return next(new ErrorHandler("User not found", 404));
         }
 
-        if(!user.isverified){
+        if (!user.isverified) {
             return next(new ErrorHandler("User not verified", 401));
         }
 
         const isPasswordValid = await user.comparePassword(password);
-        if(!isPasswordValid){
+        if (!isPasswordValid) {
             return next(new ErrorHandler("Invalid password", 401));
         }
 
-        const token=jwt.sign({
-            id:user._id
-        },process.env.JWT_SECRET,{expiresIn:"7d"})
+        const token = jwt.sign({
+            id: user._id
+        }, process.env.JWT_SECRET, { expiresIn: "7d" })
 
-        res.cookie("token",token)
+        res.cookie("token", token)
 
 
         res.status(200).json({
-            success:true,
-            message:"User logged in successfully",
-            user:{
-                username:user.username,
-                email:user.email,
-                isverified:user.isverified
+            success: true,
+            message: "User logged in successfully",
+            user: {
+                username: user.username,
+                email: user.email,
+                isverified: user.isverified
             }
         })
     } catch (error) {
@@ -134,38 +134,38 @@ export const login = async (req,res,next) => {
     }
 }
 
-export const logout = async (req,res,next) => {
+export const logout = async (req, res, next) => {
     try {
-        const token=req.cookies.token
+        const token = req.cookies.token
         res.clearCookie("token")
-        redis.set(token,Date.now(),"EX",60*60)
-        
+        redis.set(token, Date.now(), "EX", 60 * 60)
+
         res.status(200).json({
-            success:true,
-            message:"User logged out successfully"
+            success: true,
+            message: "User logged out successfully"
         })
     } catch (error) {
         next(error);
     }
 }
 
-export const getme = async (req,res) => {
+export const getme = async (req, res) => {
     try {
         const user = await usermodel.findById(req.user.id);
         res.status(200).json({
-            success:true,
-            message:"your data fetched successfully",
-            user:{
-                username:user.username,
-                email:user.email,
-                isverified:user.isverified
+            success: true,
+            message: "your data fetched successfully",
+            user: {
+                username: user.username,
+                email: user.email,
+                isverified: user.isverified
             }
         })
     } catch (error) {
         console.log(error);
         res.status(500).json({
-            success:false,
-            message:"Internal server error"
+            success: false,
+            message: "Internal server error"
         })
     }
 }

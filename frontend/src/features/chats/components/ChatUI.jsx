@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Plus, Send, Share2, Share, Download, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal, Check } from "lucide-react";
 import useChat from "../hooks/chat.hook";
 import Loader from "./Loader";
@@ -7,6 +7,7 @@ import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTheme } from "../../../contexts/ThemeContext";
+import { setpreview } from "../chat.slice";
 
 const CodeBlock = ({ language, value }) => {
   const [copied, setCopied] = useState(false);
@@ -180,15 +181,15 @@ const MessageActions = ({ content }) => {
 };
 
 const ChatUI = () => {
-  const { messages, currentChat, loading, chats } = useSelector((s) => s.chat);
+  const { messages, currentChat, loading, chats,preview } = useSelector((s) => s.chat);
   const { handlesendmessage } = useChat();
   const [text, setText] = useState("");
   const bottomRef = useRef(null);
   const inputRef = useRef(null);
 const fileRef=useRef(null)
 const [file,setFile]=useState(null)
-// const [imageurl,setImageurl]=useState(null)
 
+const dispatch=useDispatch()
 
 const handlesetfile=(e)=>{
   const file=e.target.files[0]
@@ -211,15 +212,20 @@ const handlesetfile=(e)=>{
     if (bottomRef.current) {
       bottomRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
+    console.log(preview)
   }, [messages, loading]);
 
   const handleSend = async () => {
-    if (!text.trim()) return;
+    if (!text.trim() && !file) return;
     const msg = text.trim();
     setText("");
 
     // Ensure we pass the ID string
     const chatId = typeof currentChat === "object" ? currentChat?._id : currentChat;
+
+
+    const url=URL.createObjectURL(file)
+    dispatch(setpreview(url))
 
     const formData = new FormData();
     formData.append("message", msg);
@@ -227,6 +233,9 @@ const handlesetfile=(e)=>{
 
     await handlesendmessage(formData, chatId);
     setFile(null); // Clear file after sending
+    if (fileRef.current) {
+      fileRef.current.value = "";
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -343,9 +352,9 @@ const handlesetfile=(e)=>{
             <input type="file" ref={fileRef} className="hidden"  onChange={(e)=>handlesetfile(e)} />
             <button
               onClick={handleSend}
-              disabled={!text.trim() || loading}
+              disabled={(!text.trim() && !file) || loading}
               className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500
-                ${text.trim() && !loading
+                ${(text.trim() || file) && !loading
                   ? "bg-[#111] text-white dark:bg-[#EAEAEA] dark:text-[#0B0B0B] hover:bg-black dark:hover:bg-white"
                   : "bg-[#F5F5F7] text-[#CCC] dark:bg-[#222] dark:text-[#555] cursor-not-allowed"
                 }`}

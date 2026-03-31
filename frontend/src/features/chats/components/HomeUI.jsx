@@ -1,6 +1,8 @@
 import { useState, useRef } from "react";
 import { Plus, Mic, Send, Globe, BookOpen, Cpu, Smartphone, Mail } from "lucide-react";
 import useChat from "../hooks/chat.hook";
+import { useDispatch } from "react-redux";
+import { setpreview } from "../chat.slice";
 
 // Perplexity SVG logo
 const PerplexityLogo = ({ className = "" }) => (
@@ -75,10 +77,23 @@ const HomeUI = () => {
   const { handlesendmessage } = useChat();
   const inputRef = useRef(null);
 
+const [file,setFile]=useState(null);
+const refu=useRef(null);
+
+const dispatch=useDispatch()
+
   const handleSubmit = async () => {
+
+    const formData=new FormData();
+    formData.append("file",file);
+    formData.append("message",query);
+    const url=URL.createObjectURL(file)
+    dispatch(setpreview(url))
+
     if (!query.trim()) return;
-    await handlesendmessage(query, null);
+    await handlesendmessage(formData,null);
     setQuery("");
+    setFile(null);
   };
 
   const handleKeyDown = (e) => {
@@ -117,7 +132,18 @@ const HomeUI = () => {
       </div>
 
       {/* Search input */}
-      <div className="w-full bg-white dark:bg-[#121212] border border-[#E5E5E5] dark:border-[#222] rounded-2xl p-4 mb-6 shadow-lg transition-colors duration-500">
+      <div className="w-full relative  bg-white dark:bg-[#121212] border border-[#E5E5E5] dark:border-[#222] rounded-2xl p-4 mb-6 shadow-lg transition-colors duration-500">
+          {file && (
+            <div className="mb-2 p-2 bg-neutral-100 dark:bg-[#1A1A1A] rounded-lg flex items-center justify-between">
+            <span className="text-xs text-neutral-500 truncate max-w-[200px]">{file.name}</span>
+            <button 
+              onClick={() => setFile(null)} 
+              className="text-xs text-red-500 hover:text-red-600 font-medium"
+              >
+              Remove
+            </button>
+          </div>
+        )}
         <textarea
           ref={inputRef}
           rows={2}
@@ -127,8 +153,12 @@ const HomeUI = () => {
           placeholder="Ask anything..."
           className="w-full bg-transparent text-[#111] dark:text-[#EAEAEA] placeholder-[#888] dark:placeholder-[#444] resize-none outline-none text-base leading-relaxed scrollbar-none transition-colors duration-500"
         />
+
+        <input type="file" ref={refu}  onChange={(e)=>setFile(e.target.files[0]) } className="hidden" />
         <div className="flex items-center justify-between mt-2">
-          <button className="text-[#555] hover:text-[#888] transition-colors p-1">
+          <button
+          onClick={()=>refu.current.click()}
+          className="text-[#555] hover:text-[#888] transition-colors p-1">
             <Plus size={20} />
           </button>
           <div className="flex items-center gap-2">

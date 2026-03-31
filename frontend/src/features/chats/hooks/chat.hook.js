@@ -53,13 +53,28 @@ const handlegetmessages=async(id)=>{
     }
 }
 
+
+
 const handlesendmessage = async (message, chatId) => {
     try {
         dispatch(setLoading(true))
         
-        // Use text content for local UI update to prevent React crash
-        const displayContent = message instanceof FormData ? message.get("message") : message;
-        dispatch(addMessage({ role: "user", content: displayContent, chat: chatId }))
+        // Attach the local image preview to the optimistic user message.
+        const displayContent = message instanceof FormData ? message.get("message") || "" : message;
+        const outgoingFile = message instanceof FormData ? message.get("file") : null;
+        const displayImage =
+          outgoingFile instanceof File && outgoingFile.size > 0
+            ? URL.createObjectURL(outgoingFile)
+            : null;
+
+        dispatch(
+          addMessage({
+            role: "user",
+            content: displayContent,
+            chat: chatId,
+            image: displayImage,
+          })
+        )
         
         const response = await sendMessage(message, chatId)
         console.log(response)
