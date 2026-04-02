@@ -132,7 +132,7 @@ const { handlelogout} = useAuth();
                       flex items-center justify-between gap-2 px-3 py-2 rounded-lg cursor-pointer group
                       transition-all duration-150
                       ${isActive
-                      ? "bg-[#E5E5E5] text-[#111] dark:bg-[#1F1F2E] dark:text-[#EAEAEA]"
+                      ? "bg-[#E5E5E5] text-[#111] dark:bg-[#1f2222] dark:text-[#EAEAEA]"
                       : "text-[#555] dark:text-[#888] hover:bg-[#EAEAEA] dark:hover:bg-[#161616] hover:text-[#111] dark:hover:text-[#EAEAEA]"
                     }
                     `}

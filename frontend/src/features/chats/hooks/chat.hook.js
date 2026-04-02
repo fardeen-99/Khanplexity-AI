@@ -1,6 +1,6 @@
 import { useDispatch } from "react-redux"
-import { deleteChat, getAllChats, getChat, sendMessage } from "../services/chat.service"
-import { setChats,setLoading,setError,removeChat,setMessages,setCurrentChat, addMessage, addtitle } from "../chat.slice"
+import { deleteChat, getAllChats, getChat, streamMessage } from "../services/chat.service"
+import { setChats,setLoading,setStreamStarted,updateLastMessage,setError,removeChat,setMessages,setCurrentChat, addMessage, addtitle } from "../chat.slice"
 
 const useChat=()=>{
 
@@ -73,32 +73,55 @@ const handlesendmessage = async (message, chatId) => {
             content: displayContent,
             chat: chatId,
             image: displayImage,
+            _id: "user-" + Date.now()
           })
         )
         
-        const response = await sendMessage(message, chatId)
-        console.log(response)
-        // Add both the user message and AI response sequentially
-        dispatch(addMessage(response.ai))
- 
-        if(response.title){
-          // Use response.chatId instead of response.chat
-          dispatch(addtitle({_id:response.chatId,title:response.title}))
-          dispatch(setCurrentChat(response.chatId))
-        }
+        // Insert empty placeholder for AI
+        dispatch(
+            addMessage({
+                role: "ai",
+                content: "",
+                chat: chatId,
+                _id: "ai-" + Date.now()
+            })
+        )
+        dispatch(setStreamStarted(false))
+        
+        await streamMessage(
+            message,
+            chatId,
+            (chunk) => {
+                dispatch(setStreamStarted(true))
+                dispatch(updateLastMessage(chunk))
+            },
+            (metadata) => {
+                if (metadata.title && !chatId) { // Only dispatch addtitle if it's a new chat to prevent duplicates
+                    dispatch(addtitle({_id: metadata.chatId, title: metadata.title}))
+                    dispatch(setCurrentChat(metadata.chatId))
+                }
+            },
+            (finalAi) => {
+                dispatch(setLoading(false))
+                dispatch(setStreamStarted(false))
+            },
+            (error) => {
+                console.error(error);
+                dispatch(setLoading(false))
+                dispatch(setStreamStarted(false))
+            }
+        )
 
-        dispatch(setLoading(false))
     } catch (error) {
         // dispatch(setError(error.response.data.message))
         dispatch(setLoading(false))
+        dispatch(setStreamStarted(false))
     }
 }
 
 const handlenewchat=()=>{
-
-dispatch(setMessages([]))
-dispatch(setCurrentChat(null))
-
+    dispatch(setMessages([]))
+    dispatch(setCurrentChat(null))
 }
 
 return {

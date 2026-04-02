@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
-import { Plus, Mic, Send, Globe, BookOpen, Cpu, Smartphone, Mail } from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { Plus, Send, Globe, BookOpen, Cpu, Smartphone, Mail } from "lucide-react";
 import useChat from "../hooks/chat.hook";
-import { useDispatch } from "react-redux";
 import { setpreview } from "../chat.slice";
+import VoiceInput from "./VoiceInput";
 
 // Perplexity SVG logo
 const PerplexityLogo = ({ className = "" }) => (
@@ -57,6 +58,8 @@ const sourceCards = [
   },
 ];
 
+
+
 const capabilities = [
   {
     // icon: <Instagram size={18} className="text-red-400" />,
@@ -76,6 +79,7 @@ const HomeUI = () => {
   const [query, setQuery] = useState("");
   const { handlesendmessage } = useChat();
   const inputRef = useRef(null);
+  const { loading, streamStarted } = useSelector((s) => s.chat);
 
 const [file,setFile]=useState(null);
 const refu=useRef(null);
@@ -85,10 +89,13 @@ const dispatch=useDispatch()
   const handleSubmit = async () => {
 
     const formData=new FormData();
-    formData.append("file",file);
+    if (file) formData.append("file",file);
     formData.append("message",query);
-    const url=URL.createObjectURL(file)
-    dispatch(setpreview(url))
+    
+    if (file) {
+      const url=URL.createObjectURL(file)
+      dispatch(setpreview(url))
+    }
 
     if (!query.trim()) return;
     await handlesendmessage(formData,null);
@@ -162,9 +169,7 @@ const dispatch=useDispatch()
             <Plus size={20} />
           </button>
           <div className="flex items-center gap-2">
-            <button className="text-[#555] hover:text-[#888] transition-colors p-1.5">
-              <Mic size={18} />
-            </button>
+            <VoiceInput text={query} setText={setQuery} busy={loading || streamStarted} />
             <button
               onClick={handleSubmit}
               disabled={!query.trim()}
@@ -229,7 +234,7 @@ const dispatch=useDispatch()
       </div>
 
       {/* Capabilities */}
-      <div className="w-full">
+      {/* <div className="w-full">
         <p className="text-[#555] text-xs font-semibold tracking-widest uppercase mb-3">
           Capabilities
         </p>
@@ -253,7 +258,7 @@ const dispatch=useDispatch()
             </div>
           ))}
         </div>
-      </div>
+      </div> */}
     </div>
   );
 };

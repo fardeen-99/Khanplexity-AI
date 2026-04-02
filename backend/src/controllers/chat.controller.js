@@ -67,9 +67,57 @@ export const createChat = async (req, res, next) => {
             const streamResponse = await streammessage(chatHistory);
 
             for await (const chunk of streamResponse) {
-                const content = chunk.messages[chunk.messages.length-1].text || "";
-                fullAIResponse += content;
-                res.write(`data: ${JSON.stringify({ type: "chunk", content })}\n\n`);
+                let currentContent = "";
+                
+                // 1. If using LangChain streamEvents() which provides true token-by-token streaming
+                if (chunk.event === "on_chat_model_stream") {
+                    const token = chunk.data?.chunk?.content;
+                    if (typeof token === "string" && token) {
+                        fullAIResponse += token;
+                        res.write(`data: ${JSON.stringify({ type: "chunk", content: token })}\n\n`);
+                    }
+                    continue; // Skip further processing, we handled the pure text token
+                }
+
+                // 2. Ignore non-text agent/tool diagnostic events
+                if (chunk.event) continue;
+
+                // 3. Fallback: Safely extract string from LangGraph / LangChain varying chunk formats
+                if (chunk?.messages && Array.isArray(chunk.messages)) {
+                    currentContent = chunk.messages[chunk.messages.length - 1].content || chunk.messages[chunk.messages.length - 1].text || "";
+                } else if (typeof chunk === "object" && chunk !== null) {
+                    const firstVal = Object.values(chunk)[0];
+                    if (firstVal?.messages && Array.isArray(firstVal.messages)) {
+                        currentContent = firstVal.messages[firstVal.messages.length - 1].content || firstVal.messages[firstVal.messages.length - 1].text || "";
+                    } else if (chunk.content) {
+                        currentContent = chunk.content;
+                    } else if (chunk.output) {
+                        currentContent = chunk.output;
+                    }
+                } else if (typeof chunk === "string") {
+                    currentContent = chunk;
+                }
+
+                // Skip raw tool JSON dumps so they don't appear in the chat UI
+                if (typeof currentContent === "string" && (currentContent.startsWith('{"') || currentContent.startsWith('[{"'))) {
+                    continue;
+                }
+
+                if (!currentContent || typeof currentContent !== "string") continue;
+
+                // Determine if Langchain sent a completely accumulated string, or just a new delta chunk
+                let delta = currentContent;
+                if (currentContent.startsWith(fullAIResponse)) {
+                    delta = currentContent.slice(fullAIResponse.length);
+                    fullAIResponse = currentContent;
+                } else {
+                    // If it is just a pure delta piece (or doesn't overlap), blindly append it
+                    fullAIResponse += currentContent;
+                }
+
+                if (delta) {
+                    res.write(`data: ${JSON.stringify({ type: "chunk", content: delta })}\n\n`);
+                }
             }
 
             // Save the complete AI response
@@ -99,7 +147,13 @@ export const createChat = async (req, res, next) => {
             ai: aiMessage,
         });
     } catch (error) {
-        next(error);
+        if (res.headersSent) {
+            res.write(`data: ${JSON.stringify({ type: "chunk", content: "\n\n[Error: AI generation failed midway]" })}\n\n`);
+            res.end();
+            console.error("Stream error after headers sent:", error);
+        } else {
+            next(error);
+        }
     }
 }
 

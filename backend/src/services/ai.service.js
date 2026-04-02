@@ -29,9 +29,21 @@ const searchTool = tool(search, {
     })
 })
 
+const generateImageTool = tool(async ({ prompt }) => {
+    const seed = Math.floor(Math.random() * 1000000);
+    const imageUrl = `https://pollinations.ai/p/${encodeURIComponent(prompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
+    return `![${prompt}](${imageUrl})`;
+}, {
+    name: "generateImage",
+    description: "Generate an image based on a text prompt using Stable Diffusion. Use this when the user asks to 'generate', 'create', or 'draw' an image.",
+    schema: z.object({
+        prompt: z.string().describe("Detailed description of the image to generate")
+    })
+});
+
 const googleAgent = createAgent({
     model: googleModel,
-    tools: [searchTool],
+    tools: [searchTool, generateImageTool],
     systemMessage: `
 You are a conversational assistant.
 
@@ -50,6 +62,10 @@ Strict rules:
 Tool handling:
 - If tool returns Hindi → convert it to Hinglish before answering
 - Do not output raw tool text
+
+Image Generation:
+- Use the generateImage tool when a user asks to create, draw, or generate an image.
+- When the tool returns the image markdown (e.g. ![prompt](url)), you MUST include it exactly as provided in your final response.
 
 Final Answer Rule:
 - Ensure final output matches user's language EXACTLY
@@ -59,7 +75,7 @@ Final Answer Rule:
 
 const mistralAgent = createAgent({
     model: mistralModel,
-    tools: [searchTool],
+    tools: [searchTool, generateImageTool],
     systemMessage: `
 You are a conversational assistant.
 
@@ -78,6 +94,10 @@ Strict rules:
 Tool handling:
 - If tool returns Hindi → convert it to Hinglish before answering
 - Do not output raw tool text
+
+Image Generation:
+- Use the generateImage tool when a user asks to create, draw, or generate an image.
+- When the tool returns the image markdown (e.g. ![prompt](url)), you MUST include it exactly as provided in your final response.
 
 Final Answer Rule:
 - Ensure final output matches user's language EXACTLY
@@ -150,7 +170,7 @@ export const sendmessage = async (message) => {
     }
 }
 
-export const streammessage = async (message) => {
+export async function* streammessage(message) {
     const messages = message.map((msg) => {
         if (msg.role === "user") {
             if (msg.image) {
@@ -161,23 +181,36 @@ export const streammessage = async (message) => {
                     ]
                 });
             }
-            return new HumanMessage(msg.content);
+            return new HumanMessage(msg.content || "");
         } else {
-            return new AIMessage(msg.content);
+            return new AIMessage(msg.content || "");
         }
     });
 
     try {
-        return await googleAgent.stream({ messages });
+        const stream = await googleAgent.streamEvents({ messages }, { version: "v2" });
+        const iterator = stream[Symbol.asyncIterator]();
+        
+        // Intercepting the very first stream chunk. 
+        // If Google Gemini API returns 429 Rate Limit Exceeded, it will throw an Error HERE instead of in the controller!
+        const firstChunk = await iterator.next();
+        if (!firstChunk.done) {
+            yield firstChunk.value;
+        }
+        
+        // If Google succeeds, yield the rest of the stream
+        yield* iterator;
+        
     } catch (error) {
-        console.error("Google Agent stream failed, falling back to Mistral:", error.message);
+        console.error("Google Agent stream failed (Rate Limit/Network Error). Initiating Mistral Fallback Protocol:", error.message);
 
         // Strip images for Mistral fallback
         const textOnlyMessages = message.map((msg) => {
-            if (msg.role === "user") return new HumanMessage(msg.content);
-            return new AIMessage(msg.content);
+            if (msg.role === "user") return new HumanMessage(msg.content || "");
+            return new AIMessage(msg.content || "");
         });
 
-        return await mistralAgent.stream({ messages: textOnlyMessages });
+        const mistralStream = await mistralAgent.streamEvents({ messages: textOnlyMessages }, { version: "v2" });
+        yield* mistralStream;
     }
 }

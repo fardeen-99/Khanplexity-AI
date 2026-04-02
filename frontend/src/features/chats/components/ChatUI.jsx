@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Plus, Send, Share2, Share, Download, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal, Check } from "lucide-react";
 import useChat from "../hooks/chat.hook";
 import Loader from "./Loader";
+import VoiceInput from "./VoiceInput";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
 import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
@@ -12,8 +13,8 @@ import { setpreview } from "../chat.slice";
 const CodeBlock = ({ language, value }) => {
   const [copied, setCopied] = useState(false);
 
-  
-const {theme}=useTheme()
+
+  const { theme } = useTheme()
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value);
@@ -104,6 +105,28 @@ const markdownComponents = {
       {children}
     </a>
   ),
+  img: (props) => {
+    const { src, alt } = props;
+    return (
+      <div className="my-6 rounded-2xl overflow-hidden border border-[#E5E5E5] dark:border-[#2A2A2A] shadow-md group relative max-w-lg mx-auto">
+        <img
+          src={src}
+          alt={alt || "AI Generated Art"}
+          className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.02]"
+          loading="lazy"
+          onError={(e) => {
+            e.target.style.display = 'none';
+            console.error("Image failed to load:", src);
+          }}
+        />
+        <div className="absolute top-3 right-3">
+          <span className="text-[10px] uppercase font-bold tracking-widest text-[#111] dark:text-white bg-white/60 dark:bg-black/60 px-3 py-1 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            Generative Art
+          </span>
+        </div>
+      </div>
+    );
+  },
 };
 
 // Skeleton loader for AI response
@@ -181,23 +204,23 @@ const MessageActions = ({ content }) => {
 };
 
 const ChatUI = () => {
-  const { messages, currentChat, loading, chats,preview } = useSelector((s) => s.chat);
+  const { messages, currentChat, loading, streamStarted, chats, preview } = useSelector((s) => s.chat);
   const { handlesendmessage } = useChat();
   const [text, setText] = useState("");
-  const bottomRef = useRef(null);
+  const scrollContainerRef = useRef(null);
   const inputRef = useRef(null);
-const fileRef=useRef(null)
-const [file,setFile]=useState(null)
+  const fileRef = useRef(null);
+  const [file, setFile] = useState(null);
 
-const dispatch=useDispatch()
+  const dispatch = useDispatch()
 
-const handlesetfile=(e)=>{
-  const file=e.target.files[0]
-  if(file){
-    setFile(file)
-    
+  const handlesetfile = (e) => {
+    const file = e.target.files[0]
+    if (file) {
+      setFile(file)
+
+    }
   }
-}
 
   // Get current chat title - handle both ID and Object cases for currentChat
   const chatTitle = (() => {
@@ -207,13 +230,22 @@ const handlesetfile=(e)=>{
     return found?.title || "Knowledge";
   })();
 
-  // Auto-scroll to top of new messages
+  // Flawless scrolling mechanism preventing rapid animation shakes
   useEffect(() => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+
+    // Spamming behavior: "smooth" twenty times a second during streaming forces 
+    // the browser to constantly interrupt and recalculate bezier curves, causing shaking/jitter.
+    if (streamStarted) {
+      // By instantly locking scrollTop while the text naturally heightens pixel-by-pixel, 
+      // the browser organically creates a perfectly smooth visual glide without animation thrashing.
+      container.scrollTop = container.scrollHeight;
+    } else {
+      // Use smooth glide only for initial actions (e.g., sending first message, generating loader)
+      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
     }
-    console.log(preview)
-  }, [messages, loading]);
+  }, [messages, loading, streamStarted]);
 
   const handleSend = async () => {
     if (!text.trim() && !file) return;
@@ -223,9 +255,10 @@ const handlesetfile=(e)=>{
     // Ensure we pass the ID string
     const chatId = typeof currentChat === "object" ? currentChat?._id : currentChat;
 
-
-    const url=URL.createObjectURL(file)
-    dispatch(setpreview(url))
+    if (file) {
+      const url = URL.createObjectURL(file)
+      dispatch(setpreview(url))
+    }
 
     const formData = new FormData();
     formData.append("message", msg);
@@ -245,33 +278,49 @@ const handlesetfile=(e)=>{
     }
   };
 
+  const [copy, setCopy] = useState(false);
+
+  const handlecopyShare = () => {
+    navigator.clipboard.writeText(window.location.href)
+    setCopy(true)
+    setTimeout(() => {
+      setCopy(false)
+    }, 2000);
+  }
+
   return (
     <div className="flex flex-col h-dvh overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5] dark:border-[#1F1F1F] shrink-0 transition-colors duration-500">
         <h2 className="text-[#111] dark:text-[#EAEAEA] font-semibold text-base transition-colors duration-500">{chatTitle}</h2>
-        <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E5E5] dark:border-[#2A2A2A] text-[#555] dark:text-[#888] text-sm hover:border-[#CCC] dark:hover:border-[#3A3A3A] hover:text-[#111] dark:hover:text-[#EAEAEA] transition-all duration-500">
-          <Share2 size={14} />
-          Share
+        <button
+          onClick={handlecopyShare}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E5E5] dark:border-[#2A2A2A] text-[#555] dark:text-[#888] text-sm hover:border-[#CCC] dark:hover:border-[#3A3A3A] hover:text-[#111] dark:hover:text-[#EAEAEA] transition-all duration-500">
+          {copy ? <Check size={14} className="text-green-500 cursor-pointer" /> : <Share2
+
+            size={14} />}
+          {copy ? "Copied Link to Clipboard" : "Share"}
         </button>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto no-scrollbar overflow-x-hidden scrollbar-minimal px-6 py-6 flex flex-col gap-6">
+      <div
+        ref={scrollContainerRef}
+        className="flex-1 overflow-y-auto no-scrollbar overflow-x-hidden scrollbar-minimal px-6 py-6 flex flex-col gap-6"
+      >
         {messages.map((msg, i) => (
           <div
             key={msg._id || i}
-            ref={i === messages.length - 1 ? bottomRef : null}
             className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-slide-up scroll-mt-20`}
           >
-            
+
             {msg.role === "user" ? (
               <div className="max-w-xs md:max-w-md lg:max-w-lg bg-[#e2dada] dark:bg-[#18181B] text-[#111] dark:text-[#EAEAEA] rounded-2xl rounded-br-none px-4 py-3 text-sm leading-relaxed transition-colors duration-500">
                 {msg.image && (
-                  <img 
-                    src={msg.image} 
-                    alt="Uploaded" 
-                    className="mb-2 rounded-lg max-w-full h-auto border border-black/5 dark:border-white/5" 
+                  <img
+                    src={msg.image}
+                    alt="Uploaded"
+                    className="mb-2 rounded-lg max-w-full h-auto border border-black/5 dark:border-white/5"
                   />
                 )}
                 {msg.content}
@@ -284,14 +333,17 @@ const handlesetfile=(e)=>{
                     {msg.content}
                   </ReactMarkdown>
                 </div>
-                <MessageActions content={msg.content} />
+                {/* Hide action buttons until the AI completely finishes typing this response */}
+                {!(i === messages.length - 1 && (loading || streamStarted)) && (
+                  <MessageActions content={msg.content} />
+                )}
               </div>
             )}
           </div>
         ))}
 
         {/* Loading skeleton */}
-        {loading && (
+        {loading && !streamStarted && (
           <div className="flex flex-col items-start w-full gap-4 md:m-3 animate-slide-up">
             {/* <Loader /> */}
             <div className="flex items-center gap-3 animate-pulse">
@@ -304,24 +356,21 @@ const handlesetfile=(e)=>{
                 </span>
               </p>
             </div>
-            <MessageSkeleton/>
+            <MessageSkeleton />
           </div>
 
         )}
-
-      
-
       </div>
 
       {/* Input bar (sticky bottom) */}
       <div className="shrink-0 px-6 py-4 border-t border-[#E5E5E5] dark:border-[#1F1F1F] transition-colors duration-500 relative">
         <div className="bg-white dark:bg-[#0B0B0B] border border-[#E5E5E5] dark:border-[#222] rounded-2xl p-4 shadow-lg transition-colors duration-500">
-          
+
           {file && (
             <div className="mb-2 p-2 bg-neutral-100 dark:bg-[#1A1A1A] rounded-lg flex items-center justify-between">
               <span className="text-xs text-neutral-500 truncate max-w-[200px]">{file.name}</span>
-              <button 
-                onClick={() => setFile(null)} 
+              <button
+                onClick={() => setFile(null)}
                 className="text-xs text-red-500 hover:text-red-600 font-medium"
               >
                 Remove
@@ -329,7 +378,7 @@ const handlesetfile=(e)=>{
             </div>
           )}
 
-         
+
 
           <textarea
             ref={inputRef}
@@ -342,25 +391,28 @@ const handlesetfile=(e)=>{
           />
           <div className="flex items-center justify-between mt-2">
             <button
-            onClick={()=>fileRef.current.click()}
-            className="flex items-center gap-1.5 text-[#555] hover:text-[#888] text-sm transition-colors">
+              onClick={() => fileRef.current.click()}
+              className="flex items-center gap-1.5 text-[#555] hover:text-[#888] text-sm transition-colors">
               <Plus size={16}
-              
+
               />
               Attach
             </button>
-            <input type="file" ref={fileRef} className="hidden"  onChange={(e)=>handlesetfile(e)} />
-            <button
-              onClick={handleSend}
-              disabled={(!text.trim() && !file) || loading}
-              className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500
-                ${(text.trim() || file) && !loading
-                  ? "bg-[#111] text-white dark:bg-[#EAEAEA] dark:text-[#0B0B0B] hover:bg-black dark:hover:bg-white"
-                  : "bg-[#F5F5F7] text-[#CCC] dark:bg-[#222] dark:text-[#555] cursor-not-allowed"
-                }`}
-            >
-              <Send size={15} />
-            </button>
+            <input type="file" ref={fileRef} className="hidden" onChange={(e) => handlesetfile(e)} />
+            <div className="flex items-center gap-2">
+              <VoiceInput text={text} setText={setText} busy={loading || streamStarted} />
+              <button
+                onClick={handleSend}
+                disabled={(!text.trim() && !file) || loading}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all duration-500
+                  ${(text.trim() || file) && !loading
+                    ? "bg-[#111] text-white dark:bg-[#EAEAEA] dark:text-[#0B0B0B] hover:bg-black dark:hover:bg-white"
+                    : "bg-[#F5F5F7] text-[#CCC] dark:bg-[#222] dark:text-[#555] cursor-not-allowed"
+                  }`}
+              >
+                <Send size={15} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
