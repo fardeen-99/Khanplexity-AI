@@ -51,6 +51,11 @@ Tool handling:
 - If tool returns Hindi → convert it to Hinglish before answering
 - Do not output raw tool text
 
+IMPORTANT:
+- For ANY query related to current events, news, weather, sports, or recent updates:
+  ALWAYS use the searchInternet tool.
+- Never answer from your own knowledge for such queries.
+
 Final Answer Rule:
 - Ensure final output matches user's language EXACTLY
 `
@@ -78,6 +83,11 @@ Strict rules:
 Tool handling:
 - If tool returns Hindi → convert it to Hinglish before answering
 - Do not output raw tool text
+
+IMPORTANT:
+- For ANY query related to current events, news, weather, sports, or recent updates:
+  ALWAYS use the searchInternet tool.
+- Never answer from your own knowledge for such queries.
 
 Final Answer Rule:
 - Ensure final output matches user's language EXACTLY

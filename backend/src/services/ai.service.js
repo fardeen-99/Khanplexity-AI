@@ -29,21 +29,9 @@ const searchTool = tool(search, {
     })
 })
 
-const generateImageTool = tool(async ({ prompt }) => {
-    const seed = Math.floor(Math.random() * 1000000);
-    const imageUrl = `https://pollinations.ai/p/${encodeURIComponent(prompt)}?width=1024&height=1024&seed=${seed}&model=flux&nologo=true`;
-    return `![${prompt}](${imageUrl})`;
-}, {
-    name: "generateImage",
-    description: "Generate an image based on a text prompt using Stable Diffusion. Use this when the user asks to 'generate', 'create', or 'draw' an image.",
-    schema: z.object({
-        prompt: z.string().describe("Detailed description of the image to generate")
-    })
-});
-
 const googleAgent = createAgent({
     model: googleModel,
-    tools: [searchTool, generateImageTool],
+    tools: [searchTool],
     systemMessage: `
 You are a conversational assistant.
 
@@ -58,24 +46,28 @@ Strict rules:
 - NEVER copy tool output directly
 - ALWAYS rewrite answer in user's style
 - Hinglish must look like: "dhurandar ne abtak 1000 crore kama liye hain"
+- NEVER output raw JSON, tool results, or any data structure. EVER.
+- When the search tool returns data, READ it internally and WRITE your own clean, natural answer.
 
 Tool handling:
 - If tool returns Hindi → convert it to Hinglish before answering
 - Do not output raw tool text
 
-Image Generation:
-- Use the generateImage tool when a user asks to create, draw, or generate an image.
-- When the tool returns the image markdown (e.g. ![prompt](url)), you MUST include it exactly as provided in your final response.
+IMPORTANT:
+- For ANY query related to current events, news, weather, sports, or recent updates:
+  ALWAYS use the searchInternet tool.
+- Never answer from your own knowledge for such queries.
 
 Final Answer Rule:
 - Ensure final output matches user's language EXACTLY
+- No JSON. No raw objects. No tool output dumps.
 `
 
 })
 
 const mistralAgent = createAgent({
     model: mistralModel,
-    tools: [searchTool, generateImageTool],
+    tools: [searchTool],
     systemMessage: `
 You are a conversational assistant.
 
@@ -90,17 +82,21 @@ Strict rules:
 - NEVER copy tool output directly
 - ALWAYS rewrite answer in user's style
 - Hinglish must look like: "dhurandar ne abtak 1000 crore kama liye hain"
+- NEVER output raw JSON, tool results, or any data structure. EVER.
+- When the search tool returns data, READ it internally and WRITE your own clean, natural answer.
 
 Tool handling:
 - If tool returns Hindi → convert it to Hinglish before answering
 - Do not output raw tool text
 
-Image Generation:
-- Use the generateImage tool when a user asks to create, draw, or generate an image.
-- When the tool returns the image markdown (e.g. ![prompt](url)), you MUST include it exactly as provided in your final response.
+IMPORTANT:
+- For ANY query related to current events, news, weather, sports, or recent updates:
+  ALWAYS use the searchInternet tool.
+- Never answer from your own knowledge for such queries.
 
 Final Answer Rule:
 - Ensure final output matches user's language EXACTLY
+- No JSON. No raw objects. No tool output dumps.
 `
 })
 
@@ -137,21 +133,29 @@ Output only the title.
 }
 
 export const sendmessage = async (message) => {
-    const messages = message.map((msg) => {
-        if (msg.role === "user") {
-            if (msg.image) {
-                return new HumanMessage({
-                    content: [
-                        { type: "text", text: msg.content || "" },
-                        { type: "image_url", image_url: { url: msg.image } }
-                    ]
-                });
+    // Always inject the real current date so the AI never guesses it
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("en-GB", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    const timeStr = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZoneName: "short" });
+
+    const messages = [
+        new SystemMessage(`Current date and time: ${dateStr}, ${timeStr}. Use this as the real today's date in all your responses.`),
+        ...message.map((msg) => {
+            if (msg.role === "user") {
+                if (msg.image) {
+                    return new HumanMessage({
+                        content: [
+                            { type: "text", text: msg.content || "" },
+                            { type: "image_url", image_url: { url: msg.image } }
+                        ]
+                    });
+                }
+                return new HumanMessage(msg.content);
+            } else {
+                return new AIMessage(msg.content);
             }
-            return new HumanMessage(msg.content);
-        } else {
-            return new AIMessage(msg.content);
-        }
-    });
+        })
+    ];
 
     try {
         const response = await googleAgent.invoke({ messages });
@@ -170,47 +174,42 @@ export const sendmessage = async (message) => {
     }
 }
 
-export async function* streammessage(message) {
-    const messages = message.map((msg) => {
-        if (msg.role === "user") {
-            if (msg.image) {
-                return new HumanMessage({
-                    content: [
-                        { type: "text", text: msg.content || "" },
-                        { type: "image_url", image_url: { url: msg.image } }
-                    ]
-                });
+export const streammessage = async (message) => {
+    // Always inject the real current date so the AI never guesses it
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("en-GB", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+    const timeStr = now.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit", timeZoneName: "short" });
+
+    const messages = [
+        new SystemMessage(`Current date and time: ${dateStr}, ${timeStr}. Use this as the real today's date in all your responses.`),
+        ...message.map((msg) => {
+            if (msg.role === "user") {
+                if (msg.image) {
+                    return new HumanMessage({
+                        content: [
+                            { type: "text", text: msg.content || "" },
+                            { type: "image_url", image_url: { url: msg.image } }
+                        ]
+                    });
+                }
+                return new HumanMessage(msg.content);
+            } else {
+                return new AIMessage(msg.content);
             }
-            return new HumanMessage(msg.content || "");
-        } else {
-            return new AIMessage(msg.content || "");
-        }
-    });
+        })
+    ];
 
     try {
-        const stream = await googleAgent.streamEvents({ messages }, { version: "v2" });
-        const iterator = stream[Symbol.asyncIterator]();
-        
-        // Intercepting the very first stream chunk. 
-        // If Google Gemini API returns 429 Rate Limit Exceeded, it will throw an Error HERE instead of in the controller!
-        const firstChunk = await iterator.next();
-        if (!firstChunk.done) {
-            yield firstChunk.value;
-        }
-        
-        // If Google succeeds, yield the rest of the stream
-        yield* iterator;
-        
+        return await googleAgent.stream({ messages });
     } catch (error) {
-        console.error("Google Agent stream failed (Rate Limit/Network Error). Initiating Mistral Fallback Protocol:", error.message);
+        console.error("Google Agent stream failed, falling back to Mistral:", error.message);
 
         // Strip images for Mistral fallback
         const textOnlyMessages = message.map((msg) => {
-            if (msg.role === "user") return new HumanMessage(msg.content || "");
-            return new AIMessage(msg.content || "");
+            if (msg.role === "user") return new HumanMessage(msg.content);
+            return new AIMessage(msg.content);
         });
 
-        const mistralStream = await mistralAgent.streamEvents({ messages: textOnlyMessages }, { version: "v2" });
-        yield* mistralStream;
+        return await mistralAgent.stream({ messages: textOnlyMessages });
     }
 }

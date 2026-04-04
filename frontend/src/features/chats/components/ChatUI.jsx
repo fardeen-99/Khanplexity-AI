@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Plus, Send, Share2, Share, Download, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal, Check } from "lucide-react";
+import { Plus, Send, Share2, Copy, RotateCcw, ThumbsUp, ThumbsDown, MoreHorizontal, Check, Share, Download } from "lucide-react";
 import useChat from "../hooks/chat.hook";
-import Loader from "./Loader";
 import VoiceInput from "./VoiceInput";
 import ReactMarkdown from "react-markdown";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -10,11 +9,10 @@ import { vscDarkPlus } from "react-syntax-highlighter/dist/esm/styles/prism";
 import { useTheme } from "../../../contexts/ThemeContext";
 import { setpreview } from "../chat.slice";
 
+// ─── Code Block ────────────────────────────────────────────────────────────────
 const CodeBlock = ({ language, value }) => {
   const [copied, setCopied] = useState(false);
-
-
-  const { theme } = useTheme()
+  const { theme } = useTheme();
 
   const handleCopy = () => {
     navigator.clipboard.writeText(value);
@@ -56,9 +54,7 @@ const CodeBlock = ({ language, value }) => {
           background: theme === "dark" ? "transparent" : "#F5F5F5",
         }}
         codeTagProps={{
-          style: {
-            fontFamily: "var(--font-mono, 'Geist Mono', monospace)",
-          },
+          style: { fontFamily: "var(--font-mono, 'Geist Mono', monospace)" },
         }}
       >
         {value}
@@ -67,7 +63,7 @@ const CodeBlock = ({ language, value }) => {
   );
 };
 
-// Markdown components for professional look
+// ─── Markdown Components ────────────────────────────────────────────────────────
 const markdownComponents = {
   code({ node, inline, className, children, ...props }) {
     const match = /language-(\w+)/.exec(className || "");
@@ -76,7 +72,7 @@ const markdownComponents = {
       <CodeBlock language={match[1]} value={value} {...props} />
     ) : (
       <code
-        className={`${className} bg-[#F3F3F3] dark:bg-[#2A2A2A] px-1.5 py-0.5 rounded text-[#E01E5A] dark:text-[#FF79C6] font-mono text-[0.9em] transition-colors duration-500`}
+        className={`${className} bg-[#F3F3F3] dark:bg-[#2A2A2A] px-1.5 py-0.5 rounded text-[#E01E5A] dark:text-[#FF79C6] font-mono text-[0.9em]`}
         {...props}
       >
         {children}
@@ -100,48 +96,77 @@ const markdownComponents = {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="text-blue-600 dark:text-blue-400 hover:underline transition-colors"
+      className="text-blue-600 dark:text-blue-400 hover:underline"
     >
       {children}
     </a>
   ),
-  img: (props) => {
-    const { src, alt } = props;
-    return (
-      <div className="my-6 rounded-2xl overflow-hidden border border-[#E5E5E5] dark:border-[#2A2A2A] shadow-md group relative max-w-lg mx-auto">
-        <img
-          src={src}
-          alt={alt || "AI Generated Art"}
-          className="w-full h-auto object-cover transition-transform duration-700 group-hover:scale-[1.02]"
-          loading="lazy"
-          onError={(e) => {
-            e.target.style.display = 'none';
-            console.error("Image failed to load:", src);
-          }}
-        />
-        <div className="absolute top-3 right-3">
-          <span className="text-[10px] uppercase font-bold tracking-widest text-[#111] dark:text-white bg-white/60 dark:bg-black/60 px-3 py-1 rounded-full backdrop-blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            Generative Art
-          </span>
-        </div>
-      </div>
-    );
-  },
 };
 
-// Skeleton loader for AI response
+// ─── AI Message — strips any raw Tavily JSON and renders the answer as markdown ─
+const AIMessage = ({ content }) => {
+  const text = extractCleanText(content);
+  if (!text) return <MessageSkeleton />;
+  return (
+    <div className="markdown-content text-[#111] dark:text-[#EAEAEA] text-sm leading-relaxed transition-colors duration-500">
+      <ReactMarkdown components={markdownComponents}>{text}</ReactMarkdown>
+    </div>
+  );
+};
+
+/**
+ * If the AI accidentally leaks raw Tavily JSON, extract only the `answer` field
+ * (and any trailing conversational text after the JSON block).
+ * Otherwise, return the content as-is.
+ */
+function extractCleanText(content) {
+  if (!content || typeof content !== "string") return content || "";
+
+  const trimmed = content.trim();
+
+  // Detect Tavily JSON by characteristic keys
+  if (trimmed.includes('"query":') && trimmed.includes('"results":')) {
+    try {
+      const startIdx = trimmed.indexOf("{");
+      let braceCount = 0;
+      let endIdx = -1;
+
+      for (let i = startIdx; i < trimmed.length; i++) {
+        if (trimmed[i] === "{") braceCount++;
+        else if (trimmed[i] === "}") {
+          braceCount--;
+          if (braceCount === 0) { endIdx = i; break; }
+        }
+      }
+
+      if (endIdx !== -1) {
+        const json = JSON.parse(trimmed.substring(startIdx, endIdx + 1));
+        const trailing = trimmed.substring(endIdx + 1).trim();
+        const parts = [];
+        if (json.answer) parts.push(json.answer);
+        if (trailing) parts.push(trailing);
+        // If we extracted nothing meaningful, fall back so AI can try again
+        return parts.length > 0 ? parts.join("\n\n") : "I found some information. Please ask me again for a cleaner answer.";
+      }
+    } catch (_) {
+      // malformed JSON — just show it as text
+    }
+  }
+
+  return trimmed;
+}
+
+// ─── Skeleton Loader ────────────────────────────────────────────────────────────
 const MessageSkeleton = () => (
-  <div className="flex flex-col gap-2 w-full max-w-2xl animate-pulse-soft">
-    <div className="h-4 bg-[#E5E5E5] dark:bg-[#1F1F1F] rounded-full w-3/4 transition-colors duration-500" />
-    <div className="h-4 bg-[#E5E5E5] dark:bg-[#1F1F1F] rounded-full w-full transition-colors duration-500" />
-    <div className="h-4 bg-[#E5E5E5] dark:bg-[#1F1F1F] rounded-full w-5/6 transition-colors duration-500" />
-    <div className="h-4 bg-[#E5E5E5] dark:bg-[#1F1F1F] rounded-full w-2/3 transition-colors duration-500" />
+  <div className="flex flex-col gap-2 w-full max-w-2xl animate-pulse">
+    <div className="h-4 bg-[#E5E5E5] dark:bg-[#1F1F1F] rounded-full w-3/4" />
+    <div className="h-4 bg-[#E5E5E5] dark:bg-[#1F1F1F] rounded-full w-full" />
+    <div className="h-4 bg-[#E5E5E5] dark:bg-[#1F1F1F] rounded-full w-5/6" />
+    <div className="h-4 bg-[#E5E5E5] dark:bg-[#1F1F1F] rounded-full w-2/3" />
   </div>
 );
 
-
-// Format text with basic markdown-like rendering
-// Retired in favor of ReactMarkdown
+// ─── Message Action Buttons ─────────────────────────────────────────────────────
 const MessageActions = ({ content }) => {
   const [liked, setLiked] = useState(false);
   const [disliked, setDisliked] = useState(false);
@@ -153,76 +178,51 @@ const MessageActions = ({ content }) => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleLike = () => {
-    setLiked(!liked);
-    if (disliked) setDisliked(false);
-  };
-
-  const handleDislike = () => {
-    setDisliked(!disliked);
-    if (liked) setLiked(false);
-  };
-
   return (
     <div className="flex items-center justify-between mt-4 pt-2 text-[#555] border-t border-transparent hover:border-[#1F1F1F] transition-all">
       <div className="flex items-center gap-4">
-        <button className="hover:text-[#888] transition-colors" title="Share">
-          <Share size={15} />
-        </button>
-        <button className="hover:text-[#888] transition-colors" title="Download">
-          <Download size={15} />
-        </button>
+        <button className="hover:text-[#888] transition-colors" title="Share"><Share size={15} /></button>
+        <button className="hover:text-[#888] transition-colors" title="Download"><Download size={15} /></button>
         <button onClick={handleCopy} className="hover:text-[#888] transition-colors" title="Copy">
           {copied ? <Check size={15} className="text-green-500" /> : <Copy size={15} />}
         </button>
-        <button className="hover:text-[#888] transition-colors" title="Reload">
-          <RotateCcw size={15} />
-        </button>
+        <button className="hover:text-[#888] transition-colors" title="Reload"><RotateCcw size={15} /></button>
       </div>
-
       <div className="flex items-center gap-4">
         <button
-          onClick={handleLike}
+          onClick={() => { setLiked(!liked); if (disliked) setDisliked(false); }}
           className={`transition-all ${liked ? "text-[#EAEAEA]" : "hover:text-[#888]"}`}
-          title="Good response"
         >
           <ThumbsUp size={15} fill={liked ? "currentColor" : "none"} />
         </button>
         <button
-          onClick={handleDislike}
+          onClick={() => { setDisliked(!disliked); if (liked) setLiked(false); }}
           className={`transition-all ${disliked ? "text-[#EAEAEA]" : "hover:text-[#888]"}`}
-          title="Bad response"
         >
           <ThumbsDown size={15} fill={disliked ? "currentColor" : "none"} />
         </button>
-        <button className="hover:text-[#888] transition-colors">
-          <MoreHorizontal size={15} />
-        </button>
+        <button className="hover:text-[#888] transition-colors"><MoreHorizontal size={15} /></button>
       </div>
     </div>
   );
 };
 
+// ─── Main Chat UI ───────────────────────────────────────────────────────────────
 const ChatUI = () => {
-  const { messages, currentChat, loading, streamStarted, chats, preview } = useSelector((s) => s.chat);
+  const { messages, currentChat, loading, streamStarted, chats } = useSelector((s) => s.chat);
   const { handlesendmessage } = useChat();
   const [text, setText] = useState("");
   const scrollContainerRef = useRef(null);
   const inputRef = useRef(null);
   const fileRef = useRef(null);
   const [file, setFile] = useState(null);
-
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
   const handlesetfile = (e) => {
-    const file = e.target.files[0]
-    if (file) {
-      setFile(file)
+    const f = e.target.files[0];
+    if (f) setFile(f);
+  };
 
-    }
-  }
-
-  // Get current chat title - handle both ID and Object cases for currentChat
   const chatTitle = (() => {
     if (!currentChat) return "Knowledge";
     const chatId = typeof currentChat === "object" ? currentChat._id : currentChat;
@@ -230,20 +230,14 @@ const ChatUI = () => {
     return found?.title || "Knowledge";
   })();
 
-  // Flawless scrolling mechanism preventing rapid animation shakes
+  // Auto-scroll: instant during streaming to avoid jitter, smooth otherwise
   useEffect(() => {
     if (!scrollContainerRef.current) return;
-    const container = scrollContainerRef.current;
-
-    // Spamming behavior: "smooth" twenty times a second during streaming forces 
-    // the browser to constantly interrupt and recalculate bezier curves, causing shaking/jitter.
+    const el = scrollContainerRef.current;
     if (streamStarted) {
-      // By instantly locking scrollTop while the text naturally heightens pixel-by-pixel, 
-      // the browser organically creates a perfectly smooth visual glide without animation thrashing.
-      container.scrollTop = container.scrollHeight;
+      el.scrollTop = el.scrollHeight;
     } else {
-      // Use smooth glide only for initial actions (e.g., sending first message, generating loader)
-      container.scrollTo({ top: container.scrollHeight, behavior: "smooth" });
+      el.scrollTo({ top: el.scrollHeight, behavior: "smooth" });
     }
   }, [messages, loading, streamStarted]);
 
@@ -252,12 +246,11 @@ const ChatUI = () => {
     const msg = text.trim();
     setText("");
 
-    // Ensure we pass the ID string
     const chatId = typeof currentChat === "object" ? currentChat?._id : currentChat;
 
     if (file) {
-      const url = URL.createObjectURL(file)
-      dispatch(setpreview(url))
+      const url = URL.createObjectURL(file);
+      dispatch(setpreview(url));
     }
 
     const formData = new FormData();
@@ -265,10 +258,8 @@ const ChatUI = () => {
     if (file) formData.append("file", file);
 
     await handlesendmessage(formData, chatId);
-    setFile(null); // Clear file after sending
-    if (fileRef.current) {
-      fileRef.current.value = "";
-    }
+    setFile(null);
+    if (fileRef.current) fileRef.current.value = "";
   };
 
   const handleKeyDown = (e) => {
@@ -279,41 +270,38 @@ const ChatUI = () => {
   };
 
   const [copy, setCopy] = useState(false);
-
   const handlecopyShare = () => {
-    navigator.clipboard.writeText(window.location.href)
-    setCopy(true)
-    setTimeout(() => {
-      setCopy(false)
-    }, 2000);
-  }
+    navigator.clipboard.writeText(window.location.href);
+    setCopy(true);
+    setTimeout(() => setCopy(false), 2000);
+  };
 
   return (
     <div className="flex flex-col h-dvh overflow-hidden">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-[#E5E5E5] dark:border-[#1F1F1F] shrink-0 transition-colors duration-500">
-        <h2 className="text-[#111] dark:text-[#EAEAEA] font-semibold text-base transition-colors duration-500">{chatTitle}</h2>
+        <h2 className="text-[#111] dark:text-[#EAEAEA] font-semibold text-base transition-colors duration-500">
+          {chatTitle}
+        </h2>
         <button
           onClick={handlecopyShare}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E5E5] dark:border-[#2A2A2A] text-[#555] dark:text-[#888] text-sm hover:border-[#CCC] dark:hover:border-[#3A3A3A] hover:text-[#111] dark:hover:text-[#EAEAEA] transition-all duration-500">
-          {copy ? <Check size={14} className="text-green-500 cursor-pointer" /> : <Share2
-
-            size={14} />}
-          {copy ? "Copied Link to Clipboard" : "Share"}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#E5E5E5] dark:border-[#2A2A2A] text-[#555] dark:text-[#888] text-sm hover:border-[#CCC] dark:hover:border-[#3A3A3A] hover:text-[#111] dark:hover:text-[#EAEAEA] transition-all duration-500"
+        >
+          {copy ? <Check size={14} className="text-green-500" /> : <Share2 size={14} />}
+          {copy ? "Copied!" : "Share"}
         </button>
       </div>
 
       {/* Messages */}
       <div
         ref={scrollContainerRef}
-        className="flex-1 overflow-y-auto no-scrollbar overflow-x-hidden scrollbar-minimal px-6 py-6 flex flex-col gap-6"
+        className="flex-1 overflow-y-auto no-scrollbar overflow-x-hidden px-6 py-6 flex flex-col gap-6"
       >
         {messages.map((msg, i) => (
           <div
             key={msg._id || i}
-            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-slide-up scroll-mt-20`}
+            className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"} animate-slide-up`}
           >
-
             {msg.role === "user" ? (
               <div className="max-w-xs md:max-w-md lg:max-w-lg bg-[#e2dada] dark:bg-[#18181B] text-[#111] dark:text-[#EAEAEA] rounded-2xl rounded-br-none px-4 py-3 text-sm leading-relaxed transition-colors duration-500">
                 {msg.image && (
@@ -327,58 +315,43 @@ const ChatUI = () => {
               </div>
             ) : (
               <div className="w-full max-w-2xl">
-
-                <div className="markdown-content text-[#111] dark:text-[#EAEAEA] text-sm transition-colors duration-500">
-                  <ReactMarkdown components={markdownComponents}>
-                    {msg.content}
-                  </ReactMarkdown>
-                </div>
-                {/* Hide action buttons until the AI completely finishes typing this response */}
+                <AIMessage content={msg.content} />
+                {/* Show action buttons only after streaming is done */}
                 {!(i === messages.length - 1 && (loading || streamStarted)) && (
-                  <MessageActions content={msg.content} />
+                  <MessageActions content={typeof msg.content === "object" ? JSON.stringify(msg.content) : msg.content} />
                 )}
               </div>
             )}
           </div>
         ))}
 
-        {/* Loading skeleton */}
+        {/* Thinking indicator — shows while waiting for first chunk */}
         {loading && !streamStarted && (
-          <div className="flex flex-col items-start w-full gap-4 md:m-3 animate-slide-up">
-            {/* <Loader /> */}
-            <div className="flex items-center gap-3 animate-pulse">
-              <p className="text-neutral-500 dark:text-neutral-400 text-sm font-medium tracking-tight">
-                AI is thinking
-                <span className="inline-flex items-center ml-1">
-                  <span className="animate-[bounce_1s_infinite_0ms]">.</span>
-                  <span className="animate-[bounce_1s_infinite_200ms]">.</span>
-                  <span className="animate-[bounce_1s_infinite_400ms]">.</span>
-                </span>
-              </p>
-            </div>
-            <MessageSkeleton />
+          <div className="flex items-center gap-3 animate-pulse ml-1">
+            <p className="text-neutral-500 dark:text-neutral-400 text-sm font-medium tracking-tight">
+              Thinking
+              <span className="inline-flex items-center ml-1">
+                <span className="animate-[bounce_1s_infinite_0ms]">.</span>
+                <span className="animate-[bounce_1s_infinite_200ms]">.</span>
+                <span className="animate-[bounce_1s_infinite_400ms]">.</span>
+              </span>
+            </p>
           </div>
-
         )}
       </div>
 
-      {/* Input bar (sticky bottom) */}
-      <div className="shrink-0 px-6 py-4 border-t border-[#E5E5E5] dark:border-[#1F1F1F] transition-colors duration-500 relative">
+      {/* Input Bar */}
+      <div className="shrink-0 px-6 py-4 border-t border-[#E5E5E5] dark:border-[#1F1F1F] transition-colors duration-500">
         <div className="bg-white dark:bg-[#0B0B0B] border border-[#E5E5E5] dark:border-[#222] rounded-2xl p-4 shadow-lg transition-colors duration-500">
 
           {file && (
             <div className="mb-2 p-2 bg-neutral-100 dark:bg-[#1A1A1A] rounded-lg flex items-center justify-between">
               <span className="text-xs text-neutral-500 truncate max-w-[200px]">{file.name}</span>
-              <button
-                onClick={() => setFile(null)}
-                className="text-xs text-red-500 hover:text-red-600 font-medium"
-              >
+              <button onClick={() => setFile(null)} className="text-xs text-red-500 hover:text-red-600 font-medium">
                 Remove
               </button>
             </div>
           )}
-
-
 
           <textarea
             ref={inputRef}
@@ -386,19 +359,21 @@ const ChatUI = () => {
             value={text}
             onChange={(e) => setText(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Ask a follow-up"
+            placeholder="Ask anything..."
             className="w-full bg-transparent text-[#111] dark:text-[#EAEAEA] placeholder-[#888] dark:placeholder-[#444] resize-none outline-none text-sm leading-relaxed scrollbar-none transition-colors duration-500"
           />
+
           <div className="flex items-center justify-between mt-2">
             <button
               onClick={() => fileRef.current.click()}
-              className="flex items-center gap-1.5 text-[#555] hover:text-[#888] text-sm transition-colors">
-              <Plus size={16}
-
-              />
+              className="flex items-center gap-1.5 text-[#555] hover:text-[#888] text-sm transition-colors"
+            >
+              <Plus size={16} />
               Attach
             </button>
-            <input type="file" ref={fileRef} className="hidden" onChange={(e) => handlesetfile(e)} />
+
+            <input type="file" ref={fileRef} className="hidden" onChange={handlesetfile} />
+
             <div className="flex items-center gap-2">
               <VoiceInput text={text} setText={setText} busy={loading || streamStarted} />
               <button
