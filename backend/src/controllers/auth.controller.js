@@ -169,3 +169,37 @@ export const getme = async (req, res) => {
         })
     }
 }
+
+export const resend = async (req, res, next) => {
+    try {
+        const { email } = req.body;
+        const user = await usermodel.findOne({ email });
+        if (!user) {
+            return next(new ErrorHandler("User not found", 404));
+        }
+        if (user.isverified) {
+            return next(new ErrorHandler("User already verified", 400));
+        }
+        const verificationLink = `http://localhost:${process.env.PORT || 3000}/api/auth/verify/${email}`;
+        await sendmail({
+            to: email,
+            subject: "Verify your email",
+            html: `
+        <div style="font-family: sans-serif; text-align: center; padding: 20px;">
+            <h1>Verify your email</h1>
+            <p>Click the button below to verify your account.</p>
+            <a href="${verificationLink}" style="background: #007bff; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Verify Email</a>
+        </div>
+        <p>thanks for joining khanplexity</p>
+        <p>regards,</p>
+        <p>khanplexity team</p>
+        `
+        })
+        res.status(200).json({
+            success: true,
+            message: "Verification email sent successfully"
+        })
+    } catch (error) {
+        next(error);
+    }
+}

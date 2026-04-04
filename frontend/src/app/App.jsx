@@ -4,6 +4,7 @@ import Applayout from '../features/home/pages/Applayout'
 import Home from '../features/home/pages/Home'
 import Login from '../features/auth/pages/Login'
 import Register from '../features/auth/pages/Register'
+import Resend from '../features/auth/pages/Resend'
 import Protected from '../features/auth/pages/protected'
 import Chat from '@/features/chats/pages/Chat'
 import AuthInit from '../features/auth/components/AuthInit'
@@ -33,6 +34,10 @@ const router=createBrowserRouter([
   ,{
     path:"/signup",
     element:<Register/>
+  },
+  {
+    path:"/resend",
+    element:<Resend/>
   },
 
   {

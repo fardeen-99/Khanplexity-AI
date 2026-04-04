@@ -40,7 +40,7 @@ const Register = () => {
         };
 
         await handleregister(submitForm);
-        navigate("/chat");
+        navigate("/login");
     };
 
     if (user) {

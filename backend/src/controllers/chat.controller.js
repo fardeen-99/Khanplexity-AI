@@ -53,8 +53,24 @@ export const createChat = async (req, res, next) => {
             image: imageUrl,
         });
 
-        // Retrieve chat history to provide memory to the AI
-        const chatHistory = await messagemodel.find({ chat: currentChatId }).sort({ createdAt: 1 });
+       const rawHistory = await messagemodel.find({ chat: currentChatId }).sort({ createdAt: 1 });
+
+const chatHistory = rawHistory.map(msg => {
+  if (msg.role === "user") {
+    if (msg.image) {
+      return {
+        role: "user",
+        content: [
+          { type: "text", text: msg.content || "" },
+          { type: "image_url", image_url: { url: msg.image } }
+        ]
+      };
+    }
+    return { role: "user", content: msg.content };
+  }
+
+  return { role: "assistant", content: msg.content };
+});
 
         if (stream) {
             // Set headers for SSE
@@ -107,21 +123,24 @@ export const createChat = async (req, res, next) => {
                     if (currentContent.trim().startsWith('[{"') || currentContent.trim().startsWith('{"query"')) continue;
 
                     // agent.stream() sends accumulated content, so compute the delta
-                    let delta = currentContent;
-                    if (currentContent.length > fullAIResponse.length && currentContent.startsWith(fullAIResponse)) {
-                        delta = currentContent.slice(fullAIResponse.length);
-                        fullAIResponse = currentContent;
-                    } else if (!currentContent.startsWith(fullAIResponse)) {
-                        // Pure delta chunk or completely new content
-                        fullAIResponse += currentContent;
-                    } else {
-                        // No new content
-                        continue;
-                    }
+               // Always compute delta safely
+let delta = "";
 
-                    if (delta) {
-                        res.write(`data: ${JSON.stringify({ type: "chunk", content: delta })}\n\n`);
-                    }
+// Case 1: model sends full accumulated text (most common)
+if (currentContent.startsWith(fullAIResponse)) {
+    delta = currentContent.slice(fullAIResponse.length);
+    fullAIResponse = currentContent;
+} 
+// Case 2: model sends pure chunk (rare but happens)
+else {
+    delta = currentContent;
+    fullAIResponse += currentContent;
+}
+
+// Send only new content
+if (delta && delta.trim() !== "") {
+    res.write(`data: ${JSON.stringify({ type: "chunk", content: delta })}\n\n`);
+}
                 }
             } catch (streamError) {
                 console.error("Stream disrupted:", streamError.message);

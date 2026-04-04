@@ -9,7 +9,7 @@ import search from "./Internet.service.js"
 
 
 const googleModel = new ChatGoogle({
-    model: "gemini-2.5-flash",
+    model: "gemini-1.5-flash",
     apiKey: process.env.GOOGLE_API,
 });
 

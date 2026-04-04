@@ -40,3 +40,11 @@ export const getme=async()=>{
         throw error
     }
 }
+export const resend=async(email)=>{
+    try{
+        const response=await API.post("/auth/resend",{email})
+        return response.data
+    }catch(error){
+        throw error
+    }
+}

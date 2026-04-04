@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { seterror, setloading, setuser } from "../auth.slice"
-import { getme, login, logout, register } from "../services/auth.service"
+import { getme, login, logout, register, resend } from "../services/auth.service"
 import { useDispatch } from "react-redux"
 
 
@@ -66,10 +66,24 @@ try{
 
     }
 
+    const handleResend=async(email)=>{
+
+try{
+    dispatch(setloading(true))
+ await resend(email)
+}catch(error){
+    dispatch(seterror(error.message))
+}finally{
+    dispatch(setloading(false))
+}
+
+    }
+
     return{
         handleregister,
         handlelogin,
         handlelogout,
-        handlegetme
+        handlegetme,
+        handleResend
     }
 }

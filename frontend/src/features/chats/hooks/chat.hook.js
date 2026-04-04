@@ -109,7 +109,8 @@ const handlesendmessage = async (message, chatId) => {
                 console.error(error);
                 dispatch(setLoading(false))
                 dispatch(setStreamStarted(false))
-            }
+            },
+            { stream: true } 
         )
 
     } catch (error) {

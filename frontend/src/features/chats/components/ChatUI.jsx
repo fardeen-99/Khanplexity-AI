@@ -256,6 +256,7 @@ const ChatUI = () => {
     const formData = new FormData();
     formData.append("message", msg);
     if (file) formData.append("file", file);
+    setFile(null)
 
     await handlesendmessage(formData, chatId);
     setFile(null);
