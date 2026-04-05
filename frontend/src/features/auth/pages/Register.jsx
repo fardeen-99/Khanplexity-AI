@@ -3,9 +3,12 @@ import { useNavigate, Link, Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/auth.hook";
 import { useSelector } from "react-redux";
 import { ArrowLeft } from "lucide-react";
+import { useToast } from "../../../contexts/ToastContext";
+import { registerSchema } from "../../../utils/auth-validation";
 
 const Register = () => {
     const { user, loading } = useSelector((state) => state.auth);
+    const { showToast } = useToast();
 
     const [form, setform] = useState({
         username: "",
@@ -14,7 +17,7 @@ const Register = () => {
         confirmPassword: ""
     });
 
-    const [errorMsg, setErrorMsg] = useState("");
+    const [errors, setErrors] = useState({});
 
     const { handleregister } = useAuth();
     const navigate = useNavigate();
@@ -22,25 +25,37 @@ const Register = () => {
     const handleform = (e) => {
         const { name, value } = e.target;
         setform((prev) => ({ ...prev, [name]: value }));
-        setErrorMsg("");
+        setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
     const handlesubmit = async (e) => {
         e.preventDefault();
         
-        if (form.password !== form.confirmPassword) {
-            setErrorMsg("Passwords do not match");
-            return;
+        try {
+            // Validate with Zod
+            registerSchema.parse(form);
+            
+            const submitForm = {
+                username: form.username,
+                email: form.email,
+                password: form.password
+            };
+
+            await handleregister(submitForm);
+            showToast("Signup complete! Please login.", "success");
+            navigate("/login");
+        } catch (error) {
+            if (error.name === "ZodError") {
+                const newErrors = {};
+                error.errors.forEach((err) => {
+                  newErrors[err.path[0]] = err.message;
+                });
+                setErrors(newErrors);
+                showToast("Please check the form for errors.", "error");
+            } else {
+                showToast(error.message || "Registration failed", "error");
+            }
         }
-
-        const submitForm = {
-            username: form.username,
-            email: form.email,
-            password: form.password
-        };
-
-        await handleregister(submitForm);
-        navigate("/login");
     };
 
     if (user) {
@@ -94,6 +109,9 @@ const Register = () => {
                                         placeholder="Alex Morgan"
                                         className="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all placeholder:text-outline/50 font-body"
                                     />
+                                    {errors.username && (
+                                        <p className="text-rose-400 text-[10px] uppercase tracking-wider font-bold mt-1 px-1">{errors.username}</p>
+                                    )}
                                 </div>
                             </div>
 
@@ -110,6 +128,9 @@ const Register = () => {
                                         placeholder="alex@khanplexity.ai"
                                         className="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all placeholder:text-outline/50 font-body"
                                     />
+                                    {errors.email && (
+                                        <p className="text-rose-400 text-[10px] uppercase tracking-wider font-bold mt-1 px-1">{errors.email}</p>
+                                    )}
                                 </div>
                             </div>
 
@@ -126,6 +147,9 @@ const Register = () => {
                                         placeholder="••••••••"
                                         className="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all placeholder:text-outline/50 font-body"
                                     />
+                                    {errors.password && (
+                                        <p className="text-rose-400 text-[10px] uppercase tracking-wider font-bold mt-1 px-1">{errors.password}</p>
+                                    )}
                                 </div>
                                 <div className="space-y-2">
                                     <label className="block text-xs uppercase tracking-[0.05em] font-medium text-on-surface-variant font-label px-1">Confirm Password</label>
@@ -138,12 +162,13 @@ const Register = () => {
                                         placeholder="••••••••"
                                         className="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all placeholder:text-outline/50 font-body"
                                     />
+                                    {errors.confirmPassword && (
+                                        <p className="text-rose-400 text-[10px] uppercase tracking-wider font-bold mt-1 px-1">{errors.confirmPassword}</p>
+                                    )}
                                 </div>
                             </div>
                             
-                            {errorMsg && (
-                                <p className="text-error text-xs font-semibold px-1 animate-fade-in">{errorMsg}</p>
-                            )}
+                            {/* Removed old error message p since we use toasts and in-line errors */}
 
                             {/* Submit Button */}
                             <div className="pt-4">

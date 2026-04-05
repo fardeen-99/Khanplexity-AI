@@ -13,6 +13,8 @@ import Chatlayout from '@/features/chats/pages/Chatlayout'
 
 
 
+import { ToastProvider } from '../contexts/ToastContext'
+
 function App() {
 
 const router=createBrowserRouter([
@@ -71,9 +73,11 @@ const router=createBrowserRouter([
 
 
   return (
-    <AuthInit>
-      <RouterProvider router={router}/>
-    </AuthInit>
+    <ToastProvider>
+      <AuthInit>
+        <RouterProvider router={router}/>
+      </AuthInit>
+    </ToastProvider>
   )
 }
 

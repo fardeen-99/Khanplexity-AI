@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const APi=axios.create({
-    baseURL:"http://localhost:3000/api/chat",
+    baseURL:"/api/chat",
     withCredentials:true
 })
 
@@ -48,7 +48,7 @@ export const streamMessage = async (message, chatId, onChunk, onMetadata, onDone
             headers["Content-Type"] = "application/json";
         }
 
-        const response = await fetch("http://localhost:3000/api/chat/", {
+        const response = await fetch("/api/chat/", {
             method: "POST",
             headers,
             body,

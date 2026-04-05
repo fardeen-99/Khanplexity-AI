@@ -3,9 +3,12 @@ import { useNavigate, Link, Navigate } from "react-router-dom";
 import { useAuth } from "../hooks/auth.hook";
 import { useSelector } from "react-redux";
 import { Sparkles, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { useToast } from "../../../contexts/ToastContext";
+import { loginSchema } from "../../../utils/auth-validation";
 
 const Login = () => {
     const { user, loading } = useSelector((state) => state.auth);
+    const { showToast } = useToast();
     const [showPassword, setShowPassword] = useState(false);
 
     const [form, setform] = useState({
@@ -13,19 +16,39 @@ const Login = () => {
         password: ""
     });
 
+    const [errors, setErrors] = useState({});
+
     const { handlelogin } = useAuth();
     const navigate = useNavigate();
 
     const handleform = (e) => {
         const { name, value } = e.target;
         setform((prev) => ({ ...prev, [name]: value }));
+        setErrors((prev) => ({ ...prev, [name]: "" }));
     };
 
     const handlesubmit = async (e) => {
         e.preventDefault();
-        await handlelogin(form);
-        setform({ email: "", password: "" });
-        navigate("/chat");
+        
+        try {
+            // Validate with Zod
+            loginSchema.parse(form);
+            
+            await handlelogin(form);
+            showToast("Welcome back!", "success");
+            navigate("/chat");
+        } catch (error) {
+            if (error.name === "ZodError") {
+                const newErrors = {};
+                error.errors.forEach((err) => {
+                    newErrors[err.path[0]] = err.message;
+                });
+                setErrors(newErrors);
+                showToast("Please check your credentials.", "error");
+            } else {
+                showToast(error.message || "Login failed", "error");
+            }
+        }
     };
 
     if (user) {
@@ -72,6 +95,9 @@ const Login = () => {
                                     placeholder="curator@khanplexity.ai"
                                     className="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface py-4 px-5 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/40 transition-all placeholder:text-outline/50 font-body"
                                 />
+                                {errors.email && (
+                                    <p className="text-rose-400 text-[10px] uppercase tracking-wider font-bold mt-1 px-1">{errors.email}</p>
+                                )}
                             </div>
                         </div>
 
@@ -102,6 +128,9 @@ const Login = () => {
                                 >
                                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                                 </button>
+                                {errors.password && (
+                                    <p className="text-rose-400 text-[10px] uppercase tracking-wider font-bold mt-1 px-1">{errors.password}</p>
+                                )}
                             </div>
                         </div>
 

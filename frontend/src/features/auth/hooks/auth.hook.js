@@ -2,6 +2,7 @@ import { useEffect } from "react"
 import { seterror, setloading, setuser } from "../auth.slice"
 import { getme, login, logout, register, resend } from "../services/auth.service"
 import { useDispatch } from "react-redux"
+import { useToast } from "../../../contexts/ToastContext"
 
 
 export const useAuth=()=>{
@@ -13,9 +14,11 @@ try{
     dispatch(setloading(true))
     const response=await register(form)
     dispatch(setuser(response.user))
-    dispatch(setloading(false))
+    return response;
 }catch(error){
-    dispatch(seterror(error.message))
+    const message = error.response?.data?.message || error.message;
+    dispatch(seterror(message))
+    throw new Error(message);
 }finally{
     dispatch(setloading(false))
 }
@@ -30,13 +33,18 @@ try{
             dispatch(setloading(true))
             const response=await login(form)
             dispatch(setuser(response.user))
+            return response;
         }catch(error){
-            dispatch(seterror(error.message))
+            const message = error.response?.data?.message || error.message;
+            dispatch(seterror(message))
+            throw new Error(message);
         }finally{
             dispatch(setloading(false))
         }
 
     }
+
+    const { showToast } = useToast();
 
     const handlelogout=async()=>{
 
@@ -44,8 +52,11 @@ try{
             dispatch(setloading(true))
             const response=await logout()
             dispatch(setuser(null))
+            showToast("Logged out successfully", "info");
         }catch(error){
-            dispatch(seterror(error.message))
+            const message = error.response?.data?.message || error.message;
+            dispatch(seterror(message))
+            showToast(message, "error");
         }finally{
             dispatch(setloading(false))
         }
