@@ -212,7 +212,7 @@ export const streammessage = async (message) => {
     ];
 
     try {
-        return await googleAgent.stream({ messages });
+        return await googleAgent.stream({ messages }, { streamMode: "messages" });
     } catch (error) {
         console.error("Google Agent stream failed, falling back to Mistral:", error.message);
 
@@ -222,6 +222,6 @@ export const streammessage = async (message) => {
             return new AIMessage(msg.content);
         });
 
-        return await mistralAgent.stream({ messages: textOnlyMessages });
+        return await mistralAgent.stream({ messages: textOnlyMessages }, { streamMode: "messages" });
     }
 }

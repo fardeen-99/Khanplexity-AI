@@ -106,7 +106,21 @@ const markdownComponents = {
 // ─── AI Message — strips any raw Tavily JSON and renders the answer as markdown ─
 const AIMessage = ({ content }) => {
   const text = extractCleanText(content);
-  if (!text) return <MessageSkeleton />;
+  if (!text) return(
+    <>
+   <div className="flex items-center gap-3 animate-pulse ml-1 mb-2">
+            <p className="text-neutral-500 dark:text-neutral-400 text-sm font-medium tracking-tight">
+              Thinking
+              <span className="inline-flex items-center ml-1">
+                <span className="animate-[bounce_1s_infinite_0ms]">.</span>
+                <span className="animate-[bounce_1s_infinite_200ms]">.</span>
+                <span className="animate-[bounce_1s_infinite_400ms]">.</span>
+              </span>
+            </p>
+          </div>
+            <MessageSkeleton />
+    </>
+  ) 
   return (
     <div className="markdown-content text-[#111] dark:text-[#EAEAEA] text-sm leading-relaxed transition-colors duration-500">
       <ReactMarkdown components={markdownComponents}>{text}</ReactMarkdown>
@@ -122,11 +136,10 @@ const AIMessage = ({ content }) => {
 function extractCleanText(content) {
   if (!content || typeof content !== "string") return content || "";
 
-  const trimmed = content.trim();
-
   // Detect Tavily JSON by characteristic keys
-  if (trimmed.includes('"query":') && trimmed.includes('"results":')) {
+  if (content.includes('"query":') && content.includes('"results":')) {
     try {
+      const trimmed = content.trim();
       const startIdx = trimmed.indexOf("{");
       let braceCount = 0;
       let endIdx = -1;
@@ -145,7 +158,6 @@ function extractCleanText(content) {
         const parts = [];
         if (json.answer) parts.push(json.answer);
         if (trailing) parts.push(trailing);
-        // If we extracted nothing meaningful, fall back so AI can try again
         return parts.length > 0 ? parts.join("\n\n") : "I found some information. Please ask me again for a cleaner answer.";
       }
     } catch (_) {
@@ -153,7 +165,7 @@ function extractCleanText(content) {
     }
   }
 
-  return trimmed;
+  return content;
 }
 
 // ─── Skeleton Loader ────────────────────────────────────────────────────────────
@@ -327,18 +339,9 @@ const ChatUI = () => {
         ))}
 
         {/* Thinking indicator — shows while waiting for first chunk */}
-        {loading && !streamStarted && (
-          <div className="flex items-center gap-3 animate-pulse ml-1">
-            <p className="text-neutral-500 dark:text-neutral-400 text-sm font-medium tracking-tight">
-              Thinking
-              <span className="inline-flex items-center ml-1">
-                <span className="animate-[bounce_1s_infinite_0ms]">.</span>
-                <span className="animate-[bounce_1s_infinite_200ms]">.</span>
-                <span className="animate-[bounce_1s_infinite_400ms]">.</span>
-              </span>
-            </p>
-          </div>
-        )}
+        {/* {loading && !streamStarted && (
+       
+        )} */}
       </div>
 
       {/* Input Bar */}

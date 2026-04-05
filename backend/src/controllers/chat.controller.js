@@ -85,62 +85,36 @@ const chatHistory = rawHistory.map(msg => {
             const streamResponse = await streammessage(chatHistory);
 
             try {
-                for await (const chunk of streamResponse) {
-                    let currentContent = "";
+                for await (const [chunk, metadata] of streamResponse) {
+                    let delta = "";
 
-                    // agent.stream() returns node-level snapshots like:
-                    // { agent: { messages: [AIMessage] } } or { tools: { messages: [...] } }
-                    // Extract the latest message content from whatever format arrives.
-
-                    if (chunk?.messages && Array.isArray(chunk.messages)) {
-                        const last = chunk.messages[chunk.messages.length - 1];
-                        currentContent = last?.content || last?.text || "";
-                    } else if (typeof chunk === "object" && chunk !== null) {
-                        const firstVal = Object.values(chunk)[0];
-                        if (firstVal?.messages && Array.isArray(firstVal.messages)) {
-                            const last = firstVal.messages[firstVal.messages.length - 1];
-                            currentContent = last?.content || last?.text || "";
-                        } else if (chunk.content) {
-                            currentContent = chunk.content;
-                        } else if (chunk.output) {
-                            currentContent = chunk.output;
-                        }
-                    } else if (typeof chunk === "string") {
-                        currentContent = chunk;
+                    // When using streamMode: "messages", chunk is the MessageChunk
+                    if (chunk?.content) {
+                        delta = chunk.content;
+                    } 
+                    // Fallback for other modes or formats
+                    else if (typeof chunk === "string") {
+                        delta = chunk;
+                    } else if (chunk?.text) {
+                        delta = chunk.text;
                     }
 
                     // Handle array content (Gemini sometimes returns content as array of parts)
-                    if (Array.isArray(currentContent)) {
-                        currentContent = currentContent
+                    if (Array.isArray(delta)) {
+                        delta = delta
                             .map((part) => (typeof part === "string" ? part : part?.text ?? ""))
                             .join("");
                     }
 
-                    // Skip non-string or empty content
-                    if (!currentContent || typeof currentContent !== "string") continue;
+                    if (!delta || typeof delta !== "string") continue;
 
-                    // Skip raw tool JSON dumps (Tavily results etc.)
-                    if (currentContent.trim().startsWith('[{"') || currentContent.trim().startsWith('{"query"')) continue;
+                    // Skip raw tool JSON dumps or irrelevant metadata if they somehow leak into content
+                    if (delta.trim().startsWith('[{"') || delta.trim().startsWith('{"query"')) continue;
 
-                    // agent.stream() sends accumulated content, so compute the delta
-               // Always compute delta safely
-let delta = "";
+                    fullAIResponse += delta;
 
-// Case 1: model sends full accumulated text (most common)
-if (currentContent.startsWith(fullAIResponse)) {
-    delta = currentContent.slice(fullAIResponse.length);
-    fullAIResponse = currentContent;
-} 
-// Case 2: model sends pure chunk (rare but happens)
-else {
-    delta = currentContent;
-    fullAIResponse += currentContent;
-}
-
-// Send only new content
-if (delta && delta.trim() !== "") {
-    res.write(`data: ${JSON.stringify({ type: "chunk", content: delta })}\n\n`);
-}
+                    // Send the delta immediately - DO NOT trim here, we need spaces/newlines!
+                    res.write(`data: ${JSON.stringify({ type: "chunk", content: delta })}\n\n`);
                 }
             } catch (streamError) {
                 console.error("Stream disrupted:", streamError.message);

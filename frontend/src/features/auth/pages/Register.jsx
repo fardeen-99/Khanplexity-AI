@@ -65,8 +65,8 @@ const Register = () => {
 
             <main className="w-full h-full min-h-screen flex items-center justify-center px-4 relative overflow-hidden pt-20 pb-10">
                 {/* Abstract Background Element */}
-                <div className="absolute top-[-10%] right-[-5%] w-[600px] h-[600px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
-                <div className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] bg-secondary-container/10 rounded-full blur-[100px] pointer-events-none"></div>
+             
+             
                 
                 <div className="w-full max-w-[480px] z-10 animate-fade-in">
                     {/* Header Section */}
@@ -76,7 +76,7 @@ const Register = () => {
                     </div>
 
                     {/* Registration Form Card */}
-                    <div className="bg-surface-container-low backdrop-blur-xl p-8 md:p-10 rounded-[2rem] ghost-border shadow-[0_-4px_40px_rgba(230,228,243,0.04)] relative overflow-hidden group">
+                    <div className="bg-surface-container-low backdrop-blur-xl p-8 md:p-10 rounded-[2rem] ghost-border  relative overflow-hidden group">
                         {/* Subtle internal ambient light */}
                         <div className="absolute -top-32 -right-32 w-64 h-64 bg-primary/5 blur-[80px] rounded-full"></div>
 

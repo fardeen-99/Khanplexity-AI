@@ -70,7 +70,7 @@ export const verify = async (req, res, next) => {
             return next(new ErrorHandler("User not found", 404));
         }
 
-        const loginUrl = "http://localhost:5173/login"; // Adjust this to your frontend URL
+        const loginUrl = `${process.env.LINK}/login`; // Adjust this to your frontend URL
 
         const htmlResponse = (message, status) => `
         <div style="font-family: sans-serif; text-align: center; padding: 50px;">
@@ -180,7 +180,7 @@ export const resend = async (req, res, next) => {
         if (user.isverified) {
             return next(new ErrorHandler("User already verified", 400));
         }
-        const verificationLink = `http://localhost:${process.env.PORT || 3000}/api/auth/verify/${email}`;
+        const verificationLink = `${process.env.LINK}/api/auth/verify/${email}`;
         await sendmail({
             to: email,
             subject: "Verify your email",
