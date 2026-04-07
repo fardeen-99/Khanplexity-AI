@@ -225,3 +225,4 @@ export const streammessage = async (message) => {
         return await mistralAgent.stream({ messages: textOnlyMessages }, { streamMode: "messages" });
     }
 }
+

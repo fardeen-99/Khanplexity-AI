@@ -14,6 +14,8 @@ import Chatlayout from '@/features/chats/pages/Chatlayout'
 
 
 import { ToastProvider } from '../contexts/ToastContext'
+import Cafe from './Cafe'
+import AiPage from './Ai'
 
 function App() {
 
@@ -59,6 +61,14 @@ const router=createBrowserRouter([
       }
     ]
   },
+  {
+    path:"/cafe",
+    element:<Cafe/>
+  },
+  {
+    path:"/ai",
+    element:<AiPage/>
+  }
 
   // {
   //   path:"/chat",
