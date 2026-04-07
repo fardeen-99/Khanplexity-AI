@@ -20,10 +20,10 @@ export default function VoiceInput({ text, setText, busy = false }) {
     recognition.lang = window.navigator.language || "en-US"; 
     
     // Crucial UX fix: Continuous ensures the mic doesn't randomly stop when you pause briefly
-    recognition.continuous = true; 
+    recognition.continuous = false; 
     
     // Shows the words live as you speak for instant feedback
-    recognition.interimResults = true;
+    recognition.interimResults = false;
 
     // Capture what's already in the text box so we don't accidentally overwrite it
     let baseTranscript = text ? text + (text.endsWith(" ") ? "" : " ") : "";
@@ -32,22 +32,25 @@ export default function VoiceInput({ text, setText, busy = false }) {
       setListening(true);
     };
 
-    recognition.onresult = (event) => {
-      let interimTranscript = "";
+recognition.onresult = (event) => {
+  let finalTranscript = "";
 
-      for (let i = event.resultIndex; i < event.results.length; ++i) {
-        if (event.results[i].isFinal) {
-          // Commit finalized words permanently
-          baseTranscript += event.results[i][0].transcript;
-        } else {
-          // Just show them temporarily while the AI parses
-          interimTranscript += event.results[i][0].transcript;
-        }
+  for (let i = event.resultIndex; i < event.results.length; i++) {
+    if (event.results[i].isFinal) {
+      finalTranscript += event.results[i][0].transcript;
+    }
+  }
+
+  if (finalTranscript) {
+    setText((prev) => {
+      // 🛑 hardcore duplicate filter
+      if (prev.includes(finalTranscript.trim())) {
+        return prev;
       }
-
-      // Update the main chat input field live
-      setText(baseTranscript + interimTranscript);
-    };
+      return prev + " " + finalTranscript;
+    });
+  }
+};
 
     recognition.onerror = (err) => {
       console.error("Speech error details:", err);

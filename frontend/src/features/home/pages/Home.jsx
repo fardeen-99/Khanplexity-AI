@@ -17,14 +17,14 @@ const Home = () => {
         <main className="flex-1 flex flex-col items-center pt-32 pb-20 px-6 max-w-7xl mx-auto w-full overflow-hidden">
             {/* Subtle Hero Section */}
             <section className="text-center mb-24 animate-fade-in relative z-10">
-                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-[wheat] text-xs font-bold uppercase tracking-widest mb-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 text-stone-300 text-xs font-bold uppercase tracking-widest mb-8">
                     <Sparkles className="w-4 h-4" />
                     Intelligent Solutions for Everyone
                 </div>
 
                 <h1 className="text-5xl md:text-6xl font-extrabold uppercase tracking-tight text-white mb-6 leading-tight">
                    Clarity for complex thinking<br />
-                    <span className=" uppercase text-[wheat] ">
+                    <span className=" uppercase text-[wheat]">
                         KhanPlexity
                     </span>
                 </h1>
@@ -33,8 +33,8 @@ const Home = () => {
                     The next generation of AI-driven productivity. Simple, fast, and elegantly designed for your most complex tasks.
                 </p>
 
-                <div className="flex flex-wrap items-center justify-center gap-4">
-                    <HoverBorderGradient onClick={() => navigate("/signup")} className="px-8 py-4.5  text-white font-bold active:scale-95">
+                <div className="flex flex-wrap items-center justify-center gap-4 w-full">
+                    <HoverBorderGradient onClick={() => navigate("/signup")} className="px-8  py-4.5  text-white font-bold active:scale-95">
                         Get Started for Free
                     </HoverBorderGradient>
                     <button className="px-8 py-4 bg-white/5 border border-white/10 text-white font-bold rounded-4xl hover:bg-white/10 transition-all backdrop-blur-sm">

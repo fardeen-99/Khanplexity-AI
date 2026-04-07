@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken'
 import redis from "../config/cache.js";
 import ErrorHandler from "../utils/ErrorHandler.js";
 
-export const register = async (req, res) => {
+export const register = async (req, res,next) => {
 
     try {
 
@@ -21,7 +21,7 @@ export const register = async (req, res) => {
             return next(new ErrorHandler("User already exists", 400));
         }
 
-        const verificationLink = `http://localhost:${process.env.PORT || 3000}/api/auth/verify/${email}`;
+        const verificationLink = `${process.env.BACKLINK}/api/auth/verify/${email}`;
 
         await sendmail({
             to: email,
@@ -175,10 +175,10 @@ export const resend = async (req, res, next) => {
         const { email } = req.body;
         const user = await usermodel.findOne({ email });
         if (!user) {
-            return next(new ErrorHandler("User not found", 404));
+            return next(new ErrorHandler("This user not Exist", 404));
         }
         if (user.isverified) {
-            return next(new ErrorHandler("User already verified", 400));
+            return next(new ErrorHandler("This user already verified", 400));
         }
         const verificationLink = `${process.env.LINK}/api/auth/verify/${email}`;
         await sendmail({

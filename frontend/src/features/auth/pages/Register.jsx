@@ -42,12 +42,12 @@ const Register = () => {
             };
 
             await handleregister(submitForm);
-            showToast("Signup complete! Please login.", "success");
+            showToast("Signup complete! Please check your email to verify your account.", "success");
             navigate("/login");
         } catch (error) {
             if (error.name === "ZodError") {
                 const newErrors = {};
-                error.errors.forEach((err) => {
+                error.issues.forEach((err) => {
                   newErrors[err.path[0]] = err.message;
                 });
                 setErrors(newErrors);

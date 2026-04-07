@@ -4,25 +4,35 @@ import { ArrowLeft, Mail, ChevronRight, Loader2, CheckCircle2 } from "lucide-rea
 import { resend } from "../services/auth.service";
 import { useSelector } from "react-redux";
 import { useAuth } from "../hooks/auth.hook";
+import { useToast } from "../../../contexts/ToastContext";
+
 
 const Resend = () => {
+
+    const {showToast}=useToast()
     const [email, setEmail] = useState("");
     const [errorMsg, setErrorMsg] = useState("");
     const [successMsg, setSuccessMsg] = useState("");
     const navigate = useNavigate();
 
     const loading=useSelector((state)=>state.auth.loading)
-    // const errorMsg=useSelector((state)=>state.auth.error)
+   
 const {handleResend}=useAuth()
     const handleSubmit = async (e) => {
         e.preventDefault();
-        // try {
+        try{
             await handleResend(email)
             setEmail("")
-            // navigate("/login")
+         
             setSuccessMsg("Verification email sent successfully!");
-            
+ showToast("Verification email sent successfully!", "success");
        
+        }catch(error){
+          
+                       showToast(error.message || "Resend failed", "error");
+                   
+        }
+    
     };
 
     return (
@@ -42,9 +52,7 @@ const {handleResend}=useAuth()
             </header>
 
             <main className="w-full max-w-[480px] px-6 z-10 animate-fade-in flex flex-col items-center pt-20">
-                {/* Abstract Background Element */}
-                <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-primary/5 rounded-full blur-[120px] pointer-events-none"></div>
-                <div className="absolute bottom-[-10%] right-[-10%] w-[400px] h-[400px] bg-secondary-container/10 rounded-full blur-[100px] pointer-events-none"></div>
+             
 
                 {/* Header Section */}
                 <div className="text-center mb-10 w-full">

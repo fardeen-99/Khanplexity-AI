@@ -83,7 +83,9 @@ try{
     dispatch(setloading(true))
  await resend(email)
 }catch(error){
-    dispatch(seterror(error.message))
+        const message = error.response?.data?.message || error.message;
+    dispatch(seterror(message))
+    throw new Error(message);
 }finally{
     dispatch(setloading(false))
 }

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link, Navigate } from "react-router-dom";
+import { useNavigate, Link, Navigate, NavLink } from "react-router-dom";
 import { useAuth } from "../hooks/auth.hook";
 import { useSelector } from "react-redux";
 import { Sparkles, Eye, EyeOff, ArrowRight } from "lucide-react";
@@ -107,9 +107,9 @@ const Login = () => {
                                 <label className="block text-xs font-bold tracking-[0.05em] uppercase text-on-surface-variant">
                                     Password
                                 </label>
-                                {/* <a href="#" className="text-xs font-semibold text-primary/80 hover:text-primary transition-colors">
-                                    Forgot password?
-                                </a> */}
+                                <NavLink to={"/resend"} className="text-xs font-semibold text-primary/80 hover:text-primary transition-colors">
+                                  Resend Email
+                                </NavLink>
                             </div>
                             <div className="relative group/input">
                                 <input

@@ -199,7 +199,7 @@ const { handlelogout} = useAuth();
                 <Bell size={16} className="active:scale-95"/>
                 <LogOut size={16} className="active:scale-95"
                 onClick={()=>{ handlelogout();navigate("/login");
-                  dispatch();
+                  
                   if (onClose) onClose();}}
                 
                 />
