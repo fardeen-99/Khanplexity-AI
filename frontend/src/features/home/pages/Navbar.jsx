@@ -8,9 +8,9 @@ useEffect(()=>{
     const handleScroll = () => {
         const navbar = document.querySelector("nav");
         if (window.scrollY > 10) {
-            navbar.classList.add("bg-black/40", "backdrop-blur-xl", "border-b", "border-white/5");
+            navbar.classList.add("bg-black/40", "backdrop-blur-xl");
         } else {
-            navbar.classList.remove("bg-black/40", "backdrop-blur-xl", "border-b", "border-white/5");
+            navbar.classList.remove("bg-black/40", "backdrop-blur-xl");
         }
     };
     window.addEventListener("scroll", handleScroll);
@@ -19,7 +19,7 @@ useEffect(()=>{
 
     const navigate = useNavigate();
     return (
-        <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8 py-5 mx-auto transition-all duration-300 border-b border-white/5">
+        <nav className="fixed top-0 left-0 right-0 z-50 flex items-center justify-between px-4 md:px-8 py-5 mx-auto transition-all duration-300">
             <div className="flex items-center ">
                 <div className="w-10 h-10 rounded-xl flex items-center justify-center ">
   <svg

@@ -5,6 +5,7 @@ import { resend } from "../services/auth.service";
 import { useSelector } from "react-redux";
 import { useAuth } from "../hooks/auth.hook";
 import { useToast } from "../../../contexts/ToastContext";
+import Particles from "@/features/home/components/Particles";
 
 
 const Resend = () => {
@@ -50,9 +51,22 @@ const {handleResend}=useAuth()
                     <Link to="/signup" className="text-[#aba9b8] font-body tracking-tight font-bold text-sm hover:text-white transition-colors">Register</Link>
                 </div>
             </header>
+             
+<div style={{ width: '100%', height: '100%',backgroundColor:"black", position: 'absolute',top:0,left:0,zIndex:1 }}>
+  <Particles
+    particleColors={["#ffffff"]}
+    particleCount={200}
+    particleSpread={10}
+    speed={0.1}
+    particleBaseSize={100}
+    moveParticlesOnHover
+    alphaParticles={false}
+    disableRotation={false}
+    pixelRatio={1}
+/>
+</div>
 
             <main className="w-full max-w-[480px] px-6 z-10 animate-fade-in flex flex-col items-center pt-20">
-             
 
                 {/* Header Section */}
                 <div className="text-center mb-10 w-full">
@@ -66,7 +80,7 @@ const {handleResend}=useAuth()
                 </div>
 
                 {/* Resend Form Card */}
-                <div className="w-full bg-surface-container-low backdrop-blur-xl p-8 md:p-10 rounded-[2.5rem] ghost-border shadow-[0_-4px_40px_rgba(230,228,243,0.04)] relative overflow-hidden group">
+                <div className="w-full glass-card p-8 md:p-10 rounded-[2.5rem] ghost-border shadow-[0_-4px_40px_rgba(230,228,243,0.04)] relative overflow-hidden group">
                     {/* Subtle internal ambient light */}
                     <div className="absolute -top-32 -right-32 w-64 h-64 bg-primary/5 blur-[80px] rounded-full"></div>
 

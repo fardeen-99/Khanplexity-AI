@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
 import { registerSchema } from "../../../utils/auth-validation";
+import Particles from "@/components/Particles";
 
 const Register = () => {
     const { user, loading } = useSelector((state) => state.auth);
@@ -65,6 +66,21 @@ const Register = () => {
     return (
         <div className="bg-[#0e0e12] text-[#e6e4f3] min-h-screen selection:bg-primary/30 selection:text-on-surface flex flex-col items justify-center obsidian-gradient relative z-0">
             {/* TopAppBar */}
+
+<div style={{ width: '100%', height: '100%',backgroundColor:"black", position: 'absolute',top:0,left:0,zIndex:-1 }}>
+  <Particles
+    particleColors={["#ffffff"]}
+    particleCount={200}
+    particleSpread={10}
+    speed={0.1}
+    particleBaseSize={100}
+    moveParticlesOnHover
+    alphaParticles={false}
+    disableRotation={false}
+    pixelRatio={1}
+/>
+</div>
+
             <header className="fixed top-0 w-full z-50 bg-[#0B0B0F]/80 backdrop-blur-md flex items-center justify-between px-6 h-16 w-full border-b border-outline-variant/10">
                 <div className="flex items-center gap-4">
                     <button onClick={() => navigate("/")} className="text-gray-300 dark:text-[#e6e4f3] cursor-pointer hover:opacity-80 transition-opacity scale-95 transition-transform duration-200">
@@ -91,9 +107,9 @@ const Register = () => {
                     </div>
 
                     {/* Registration Form Card */}
-                    <div className="bg-surface-container-low backdrop-blur-xl p-8 md:p-10 rounded-[2rem] ghost-border  relative overflow-hidden group">
+                    <div className="glass-card p-8 md:p-10 rounded-[2rem] ghost-border  relative overflow-hidden group">
                         {/* Subtle internal ambient light */}
-                        <div className="absolute -top-32 -right-32 w-64 h-64 bg-primary/5 blur-[80px] rounded-full"></div>
+                        
 
                         <form onSubmit={handlesubmit} className="space-y-6 relative z-10">
                             {/* Full Name */}

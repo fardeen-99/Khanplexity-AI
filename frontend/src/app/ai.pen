@@ -135,7 +135,7 @@
                   "fill": {
                     "type": "image",
                     "enabled": true,
-                    "url": "./images/generated-1775600459524.png",
+                    "url": "./images/generated-1775656323844.png",
                     "mode": "fill"
                   },
                   "cornerRadius": 80,
@@ -154,11 +154,28 @@
                   "type": "text",
                   "id": "oKFzr",
                   "name": "headline",
-                  "fill": "#ffffffff",
-                  "stroke": {
-                    "align": "inside",
-                    "thickness": 1,
-                    "fill": "#000000ff"
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 90,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "#F9A8D4",
+                        "position": 0
+                      },
+                      {
+                        "color": "#A855F7",
+                        "position": 0.5
+                      },
+                      {
+                        "color": "#FFFFFF",
+                        "position": 1
+                      }
+                    ]
                   },
                   "effect": {
                     "type": "shadow",
@@ -291,6 +308,232 @@
         },
         {
           "type": "frame",
+          "id": "slAIQ",
+          "name": "uiMockupWrapper",
+          "width": "fill_container",
+          "layout": "vertical",
+          "padding": [
+            80,
+            120
+          ],
+          "alignItems": "center",
+          "children": [
+            {
+              "type": "frame",
+              "id": "LejQO",
+              "name": "uiMockup",
+              "width": 1040,
+              "fill": "#ffffff08",
+              "cornerRadius": 32,
+              "stroke": {
+                "thickness": 1,
+                "fill": "#ffffff1a"
+              },
+              "effect": [
+                {
+                  "type": "background_blur",
+                  "radius": 64
+                },
+                {
+                  "type": "shadow",
+                  "shadowType": "outer",
+                  "color": "#00000080",
+                  "offset": {
+                    "x": 0,
+                    "y": 20
+                  },
+                  "blur": 60
+                }
+              ],
+              "layout": "vertical",
+              "children": [
+                {
+                  "type": "frame",
+                  "id": "vsCDU",
+                  "name": "topBar",
+                  "width": "fill_container",
+                  "stroke": {
+                    "thickness": {
+                      "bottom": 1
+                    },
+                    "fill": "#ffffff1a"
+                  },
+                  "padding": [
+                    20,
+                    32
+                  ],
+                  "justifyContent": "space_between",
+                  "alignItems": "center",
+                  "children": [
+                    {
+                      "type": "text",
+                      "id": "C5ZcL",
+                      "fill": "#ffffff",
+                      "content": "Workspace: Khanplexity Interface",
+                      "fontFamily": "Inter",
+                      "fontSize": 16,
+                      "fontWeight": "500"
+                    },
+                    {
+                      "type": "text",
+                      "id": "629L3",
+                      "fill": "#f9a8d4",
+                      "content": "● Active Engine",
+                      "fontFamily": "Inter",
+                      "fontSize": 14,
+                      "fontWeight": "normal"
+                    }
+                  ]
+                },
+                {
+                  "type": "frame",
+                  "id": "h9zcF",
+                  "name": "chatArea",
+                  "width": "fill_container",
+                  "layout": "vertical",
+                  "gap": 32,
+                  "padding": 40,
+                  "children": [
+                    {
+                      "type": "frame",
+                      "id": "CHTbK",
+                      "name": "aiMsgBox",
+                      "width": "fill_container",
+                      "gap": 20,
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "eU0oV",
+                          "name": "avatar",
+                          "width": 48,
+                          "height": 48,
+                          "fill": "#a855f7",
+                          "cornerRadius": 24,
+                          "justifyContent": "center",
+                          "alignItems": "center",
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "b1TfU",
+                              "fill": "#ffffff",
+                              "content": "K",
+                              "fontFamily": "Inter",
+                              "fontSize": 20,
+                              "fontWeight": "700"
+                            }
+                          ]
+                        },
+                        {
+                          "type": "frame",
+                          "id": "UQxvU",
+                          "name": "aiMsgContent",
+                          "fill": "#ffffff08",
+                          "cornerRadius": 20,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#ffffff1a"
+                          },
+                          "layout": "vertical",
+                          "padding": [
+                            24,
+                            32
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "q7SJR",
+                              "fill": "#ffffff",
+                              "textGrowth": "fixed-width",
+                              "width": 600,
+                              "content": "I've analyzed the current design system. To improve structural intelligence, I recommend introducing a frosted glass component layer here.",
+                              "lineHeight": 1.6,
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            },
+                            {
+                              "type": "frame",
+                              "id": "cL5g3",
+                              "width": 10,
+                              "height": 16
+                            },
+                            {
+                              "type": "frame",
+                              "id": "j4A7h",
+                              "name": "codeSnip",
+                              "width": 600,
+                              "fill": "#00000060",
+                              "cornerRadius": 12,
+                              "stroke": {
+                                "thickness": 1,
+                                "fill": "#ffffff1a"
+                              },
+                              "layout": "vertical",
+                              "padding": 24,
+                              "children": [
+                                {
+                                  "type": "text",
+                                  "id": "u4Kka",
+                                  "fill": "#f9a8d4",
+                                  "textGrowth": "fixed-width",
+                                  "width": 550,
+                                  "content": "function initGlassmorphism() {\n  return {\n    backdropFilter: 'blur(40px)',\n    backgroundColor: 'rgba(255,255,255,0.05)'\n  };\n}",
+                                  "lineHeight": 1.5,
+                                  "fontFamily": "Geist Mono",
+                                  "fontSize": 14,
+                                  "fontWeight": "normal"
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "type": "frame",
+                      "id": "9cN4n",
+                      "name": "userMsgBox",
+                      "width": "fill_container",
+                      "gap": 16,
+                      "justifyContent": "end",
+                      "children": [
+                        {
+                          "type": "frame",
+                          "id": "t0arN",
+                          "name": "userMsgContent",
+                          "fill": "#a855f730",
+                          "cornerRadius": 20,
+                          "stroke": {
+                            "thickness": 1,
+                            "fill": "#a855f760"
+                          },
+                          "layout": "vertical",
+                          "padding": [
+                            16,
+                            24
+                          ],
+                          "children": [
+                            {
+                              "type": "text",
+                              "id": "AH5Fx",
+                              "fill": "#ffffff",
+                              "content": "That looks perfect. Deploy these components.",
+                              "fontFamily": "Inter",
+                              "fontSize": 16,
+                              "fontWeight": "normal"
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "type": "frame",
           "id": "1NqsE",
           "name": "sec1",
           "width": 1440,
@@ -319,7 +562,29 @@
                 {
                   "type": "text",
                   "id": "LxNRr",
-                  "fill": "#FFFFFF",
+                  "fill": {
+                    "type": "gradient",
+                    "gradientType": "linear",
+                    "enabled": true,
+                    "rotation": 90,
+                    "size": {
+                      "height": 1
+                    },
+                    "colors": [
+                      {
+                        "color": "#F9A8D4",
+                        "position": 0
+                      },
+                      {
+                        "color": "#A855F7",
+                        "position": 0.5
+                      },
+                      {
+                        "color": "#FFFFFF",
+                        "position": 1
+                      }
+                    ]
+                  },
                   "textGrowth": "fixed-width",
                   "width": 500,
                   "content": "Contextual brilliance in every interaction.",
@@ -389,7 +654,25 @@
             {
               "type": "text",
               "id": "RsOIy",
-              "fill": "#FFFFFF",
+              "fill": {
+                "type": "gradient",
+                "gradientType": "linear",
+                "enabled": true,
+                "rotation": 90,
+                "size": {
+                  "height": 1
+                },
+                "colors": [
+                  {
+                    "color": "#C084FC",
+                    "position": 0
+                  },
+                  {
+                    "color": "#FFFFFF",
+                    "position": 1
+                  }
+                ]
+              },
               "content": "Unprecedented depth.",
               "textAlign": "center",
               "fontFamily": "Inter",
@@ -409,8 +692,19 @@
                   "id": "7X4JG",
                   "name": "c1",
                   "width": "fill_container",
+                  "fill": "#ffffff08",
+                  "cornerRadius": 24,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#ffffff1a"
+                  },
+                  "effect": {
+                    "type": "background_blur",
+                    "radius": 40
+                  },
                   "layout": "vertical",
                   "gap": 16,
+                  "padding": 40,
                   "children": [
                     {
                       "type": "text",
@@ -440,8 +734,19 @@
                   "id": "Es7tE",
                   "name": "c2",
                   "width": "fill_container",
+                  "fill": "#ffffff08",
+                  "cornerRadius": 24,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#ffffff1a"
+                  },
+                  "effect": {
+                    "type": "background_blur",
+                    "radius": 40
+                  },
                   "layout": "vertical",
                   "gap": 16,
+                  "padding": 40,
                   "children": [
                     {
                       "type": "text",
@@ -471,8 +776,19 @@
                   "id": "XKvNr",
                   "name": "c3",
                   "width": "fill_container",
+                  "fill": "#ffffff08",
+                  "cornerRadius": 24,
+                  "stroke": {
+                    "thickness": 1,
+                    "fill": "#ffffff1a"
+                  },
+                  "effect": {
+                    "type": "background_blur",
+                    "radius": 40
+                  },
                   "layout": "vertical",
                   "gap": 16,
+                  "padding": 40,
                   "children": [
                     {
                       "type": "text",

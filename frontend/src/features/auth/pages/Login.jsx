@@ -5,6 +5,7 @@ import { useSelector } from "react-redux";
 import { Sparkles, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { useToast } from "../../../contexts/ToastContext";
 import { loginSchema } from "../../../utils/auth-validation";
+import Particles from "@/components/Particles";
 
 const Login = () => {
     const { user, loading } = useSelector((state) => state.auth);
@@ -57,6 +58,21 @@ const Login = () => {
 
     return (
         <div className="bg-[#0B0B0F] text-on-surface min-h-screen flex flex-col items-center justify-center p-6 selection:bg-primary-container selection:text-white relative z-0">
+
+<div style={{ width: '100%', height: '100%',backgroundColor:"black", position: 'absolute',top:0,left:0,zIndex:-1 }}>
+  <Particles
+    particleColors={["#ffffff"]}
+    particleCount={200}
+    particleSpread={10}
+    speed={0.1}
+    particleBaseSize={100}
+    moveParticlesOnHover
+    alphaParticles={false}
+    disableRotation={false}
+    pixelRatio={1}
+/>
+</div>
+
             <main className="w-full max-w-[450px] relative z-10 animate-fade-in">
                 {/* Branding Section */}
                 <div className="flex flex-col items-center mb-10 text-center">

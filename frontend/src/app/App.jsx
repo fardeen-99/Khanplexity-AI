@@ -26,7 +26,7 @@ const router=createBrowserRouter([
     ,children:[
       {
         path:"/",
-        element:<Home/>
+        element:<AiPage/>
       }
     ]
     
@@ -61,14 +61,14 @@ const router=createBrowserRouter([
       }
     ]
   },
-  {
-    path:"/cafe",
-    element:<Cafe/>
-  },
-  {
-    path:"/ai",
-    element:<AiPage/>
-  }
+  // {
+  //   path:"/cafe",
+  //   element:<Cafe/>
+  // },
+  // {
+  //   path:"/ai",
+  //   element:<AiPage/>
+  // }
 
   // {
   //   path:"/chat",
