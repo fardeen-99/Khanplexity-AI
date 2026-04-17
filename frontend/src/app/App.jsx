@@ -5,6 +5,9 @@ import Home from '../features/home/pages/Home'
 import Login from '../features/auth/pages/Login'
 import Register from '../features/auth/pages/Register'
 import Resend from '../features/auth/pages/Resend'
+import ForgotPassword from '../features/auth/pages/ForgotPassword'
+import VerifyOTP from '../features/auth/pages/VerifyOTP'
+import ResetPassword from '../features/auth/pages/ResetPassword'
 import Protected from '../features/auth/pages/protected'
 import Chat from '@/features/chats/pages/Chat'
 import AuthInit from '../features/auth/components/AuthInit'
@@ -42,6 +45,18 @@ const router=createBrowserRouter([
   {
     path:"/resend",
     element:<Resend/>
+  },
+  {
+    path:"/forgot-password",
+    element:<ForgotPassword/>
+  },
+  {
+    path:"/verify-otp",
+    element:<VerifyOTP/>
+  },
+  {
+    path:"/reset-password",
+    element:<ResetPassword/>
   },
 
   {

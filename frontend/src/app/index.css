@@ -334,5 +334,5 @@
 }
 
 .animate-roll {
-  animation: roll 30s linear infinite;
+  animation: roll 1s linear infinite;
 }

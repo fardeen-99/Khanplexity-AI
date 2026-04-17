@@ -119,13 +119,17 @@ const Login = () => {
 
                         {/* Password Input */}
                         <div className="space-y-2">
-                            <div className="flex justify-between items-center ml-1">
+                            <div className="flex justify-between items-center ml-1 mb-2">
                                 <label className="block text-xs font-bold tracking-[0.05em] uppercase text-on-surface-variant">
                                     Password
                                 </label>
-                                <NavLink to={"/resend"} className="text-xs font-semibold text-primary/80 hover:text-primary transition-colors">
-                                  Resend Email
-                                </NavLink>
+                                <div className="flex gap-2">
+                                  <NavLink to={"/forgot-password"} className="text-xs font-semibold text-primary/80 hover:text-primary transition-colors">
+                                    Forgot Password?
+                                  </NavLink>
+                                  <span className="text-outline-variant/40 text-xs"></span>
+                                
+                                </div>
                             </div>
                             <div className="relative group/input">
                                 <input

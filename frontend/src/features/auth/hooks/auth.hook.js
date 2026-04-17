@@ -1,6 +1,6 @@
 import { useEffect } from "react"
 import { seterror, setloading, setuser } from "../auth.slice"
-import { getme, login, logout, register, resend } from "../services/auth.service"
+import { getme, login, logout, register, resend, forgotPassword, verifyOtp, resetPassword } from "../services/auth.service"
 import { useDispatch } from "react-redux"
 import { useToast } from "../../../contexts/ToastContext"
 
@@ -92,11 +92,56 @@ try{
 
     }
 
+    const handleForgotPassword = async (email) => {
+        try {
+            dispatch(setloading(true));
+            const response = await forgotPassword(email);
+            return response;
+        } catch (error) {
+            const message = error.response?.data?.message || error.message;
+            dispatch(seterror(message));
+            throw new Error(message);
+        } finally {
+            dispatch(setloading(false));
+        }
+    };
+
+    const handleVerifyOtp = async (otp) => {
+        try {
+            dispatch(setloading(true));
+            const response = await verifyOtp(otp);
+            return response;
+        } catch (error) {
+            const message = error.response?.data?.message || error.message;
+            dispatch(seterror(message));
+            throw new Error(message);
+        } finally {
+            dispatch(setloading(false));
+        }
+    };
+
+    const handleResetPassword = async (password, email) => {
+        try {
+            dispatch(setloading(true));
+            const response = await resetPassword(password, email);
+            return response;
+        } catch (error) {
+            const message = error.response?.data?.message || error.message;
+            dispatch(seterror(message));
+            throw new Error(message);
+        } finally {
+            dispatch(setloading(false));
+        }
+    };
+
     return{
         handleregister,
         handlelogin,
         handlelogout,
         handlegetme,
-        handleResend
+        handleResend,
+        handleForgotPassword,
+        handleVerifyOtp,
+        handleResetPassword
     }
 }

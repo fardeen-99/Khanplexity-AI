@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate, Link, Navigate } from "react-router-dom";
+import { useNavigate, Link, Navigate, NavLink } from "react-router-dom";
 import { useAuth } from "../hooks/auth.hook";
 import { useSelector } from "react-redux";
 import { ArrowLeft } from "lucide-react";
@@ -133,7 +133,13 @@ const Register = () => {
 
                             {/* Email */}
                             <div className="space-y-2">
+                                <div className="flex justify-between items-center">
+
                                 <label className="block text-xs uppercase tracking-[0.05em] font-medium text-on-surface-variant font-label px-1">Email Address</label>
+                                <NavLink to={"/resend"} className=" pr-1 text-xs font-semibold text-primary/80 hover:text-primary transition-colors">
+                                    Resend Email?
+                                  </NavLink>
+                                </div>
                                 <div className="relative group">
                                     <input
                                         required
@@ -144,6 +150,7 @@ const Register = () => {
                                         placeholder="alex@khanplexity.ai"
                                         className="w-full bg-surface-container-lowest border border-outline-variant/30 text-on-surface rounded-xl px-4 py-3.5 focus:outline-none focus:ring-1 focus:ring-primary/40 focus:border-primary/50 transition-all placeholder:text-outline/50 font-body"
                                     />
+                                      
                                     {errors.email && (
                                         <p className="text-rose-400 text-[10px] uppercase tracking-wider font-bold mt-1 px-1">{errors.email}</p>
                                     )}

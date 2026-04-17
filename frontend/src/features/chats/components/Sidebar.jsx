@@ -197,7 +197,7 @@ const { handlelogout} = useAuth();
               </span>
               <div className="ml-auto flex gap-2 text-[#555] transition-all">
                 <Bell size={16} className="active:scale-95"/>
-                <LogOut size={16} className="active:scale-95"
+                <LogOut size={16} className="active:scale-95 hover:text-red-500"
                 onClick={()=>{ handlelogout();navigate("/login");
                   
                   if (onClose) onClose();}}

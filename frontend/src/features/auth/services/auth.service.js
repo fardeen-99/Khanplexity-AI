@@ -48,3 +48,30 @@ export const resend=async(email)=>{
         throw error
     }
 }
+
+export const forgotPassword = async (email) => {
+    try {
+        const response = await API.post("/auth/forgot-password", { email });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const verifyOtp = async (otp) => {
+    try {
+        const response = await API.post("/auth/verify-otp", { otp });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
+
+export const resetPassword = async (password, email) => {
+    try {
+        const response = await API.post("/auth/reset-password", { password, email });
+        return response.data;
+    } catch (error) {
+        throw error;
+    }
+};
