@@ -140,7 +140,7 @@ export const verify = async (req, res, next) => {
             return next(new ErrorHandler("User not found", 404));
         }
 
-        const loginUrl = `${process.env.LINK}/login`; // Adjust this to your frontend URL
+        const loginUrl = "https://khanplexity-ai.onrender.com/login"; // Adjust this to your frontend URL
 
 const htmlResponse = (type) => {
   const states = {
